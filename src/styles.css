@@ -1,0 +1,95 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Mukta", system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-earth: var(--earth);
+  --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-foreground: var(--whatsapp-foreground);
+  --color-overlay: var(--overlay);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.97 0.02 85);
+  --foreground: oklch(0.25 0.04 55);
+  --card: oklch(0.99 0.012 85);
+  --card-foreground: oklch(0.25 0.04 55);
+  --popover: oklch(0.99 0.012 85);
+  --popover-foreground: oklch(0.25 0.04 55);
+  --primary: oklch(0.33 0.06 150);
+  --primary-foreground: oklch(0.97 0.02 85);
+  --secondary: oklch(0.92 0.04 85);
+  --secondary-foreground: oklch(0.3 0.05 55);
+  --muted: oklch(0.93 0.025 85);
+  --muted-foreground: oklch(0.48 0.04 60);
+  --accent: oklch(0.78 0.14 80);
+  --accent-foreground: oklch(0.22 0.04 55);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.87 0.04 80);
+  --input: oklch(0.87 0.04 80);
+  --ring: oklch(0.78 0.14 80);
+  --gold: oklch(0.78 0.14 80);
+  --earth: oklch(0.4 0.07 55);
+  --whatsapp: oklch(0.62 0.17 150);
+  --whatsapp-foreground: oklch(0.99 0 0);
+  --overlay: oklch(0.15 0.03 55);
+  --gradient-gold: linear-gradient(135deg, oklch(0.84 0.13 88), oklch(0.7 0.14 70));
+  --gradient-hero: linear-gradient(180deg, oklch(0.15 0.03 55 / 0.55), oklch(0.15 0.03 55 / 0.35) 40%, oklch(0.15 0.03 55 / 0.85));
+  --shadow-warm: 0 20px 45px -20px oklch(0.4 0.07 55 / 0.45);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; }
+  body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
+  h1, h2, h3 { font-family: var(--font-display); }
+}
+
+@utility bg-gradient-gold { background-image: var(--gradient-gold); }
+@utility bg-gradient-hero { background-image: var(--gradient-hero); }
+@utility shadow-warm { box-shadow: var(--shadow-warm); }
+@utility text-gradient-gold {
+  background-image: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.12); } }
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@utility animate-kenburns { animation: kenburns 18s ease-in-out infinite alternate; }
+@utility animate-rise { animation: rise 0.9s ease-out both; }
+
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; }
+.reveal.in { opacity: 1; transform: none; }
