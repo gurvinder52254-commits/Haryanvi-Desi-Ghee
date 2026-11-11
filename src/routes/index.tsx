@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Haryanvi Desi Ghee – Asli Haryane Ka Desi Swad" },
-      { name: "description", content: "Traditional Haryanvi desi ghee in 5 KG, 1 KG, 500 GM and 250 GM packs. Order easily on WhatsApp." },
+      { name: "description", content: "Traditional Haryanvi desi ghee in 250 GM, 500 GM, 1 KG and 5 KG packs. Order easily on WhatsApp." },
       { property: "og:title", content: "Haryanvi Desi Ghee – Asli Haryane Ka Desi Swad" },
       { property: "og:description", content: "Traditional taste from Haryana. Order your desi ghee directly on WhatsApp." },
       { property: "og:type", content: "website" },

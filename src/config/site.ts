@@ -2,7 +2,7 @@
 export const SITE = {
   brand: "Haryanvi Desi Ghee",
   // WhatsApp number in international format, digits only (e.g. "919876543210"). Leave empty until provided.
-  whatsappNumber: "8569852254",
+  whatsappNumber: "918569852254",
   phone: "",
   email: "",
   address: "Haryana, India",
@@ -13,10 +13,10 @@ export const SITE = {
 export type Product = { id: string; name: string; weight: string; price: number; tag?: string };
 
 export const PRODUCTS: Product[] = [
-  { id: "5kg", name: "Haryanvi Desi Ghee", weight: "5 KG", price: 10000, tag: "Family Pack" },
-  { id: "1kg", name: "Haryanvi Desi Ghee", weight: "1 KG", price: 2000, tag: "Bestseller" },
-  { id: "500g", name: "Haryanvi Desi Ghee", weight: "500 GM", price: 1000 },
   { id: "250g", name: "Haryanvi Desi Ghee", weight: "250 GM", price: 500 },
+  { id: "500g", name: "Haryanvi Desi Ghee", weight: "500 GM", price: 1000 },
+  { id: "1kg", name: "Haryanvi Desi Ghee", weight: "1 KG", price: 2000, tag: "Bestseller" },
+  { id: "5kg", name: "Haryanvi Desi Ghee", weight: "5 KG", price: 10000, tag: "Family Pack" },
 ];
 
 export function buildOrderMessage(p?: Product, qty = 1) {
