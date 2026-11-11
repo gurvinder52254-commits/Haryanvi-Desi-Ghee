@@ -2,7 +2,7 @@
 export const SITE = {
   brand: "Haryanvi Desi Ghee",
   // WhatsApp number in international format, digits only (e.g. "919876543210"). Leave empty until provided.
-  whatsappNumber: "",
+  whatsappNumber: "8569852254",
   phone: "",
   email: "",
   address: "Haryana, India",
