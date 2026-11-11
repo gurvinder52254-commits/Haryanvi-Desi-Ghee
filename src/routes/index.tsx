@@ -4,6 +4,7 @@ import poster from "@/assets/hero-poster.jpg";
 import jar from "@/assets/ghee-jar.jpg";
 import village from "@/assets/village.jpg";
 import { PRODUCTS, SITE, whatsappLink, type Product } from "@/config/site";
+import { addReview, getReviews, reviewInputSchema, type Review } from "@/lib/reviews";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: () => getReviews(),
   component: Index,
 });
 
@@ -240,26 +242,198 @@ function Why() {
   );
 }
 
-const REVIEWS = [
-  { n: "Sample Customer", c: "Rohtak", r: "The taste reminds me of the ghee my grandmother made. Placeholder review." },
-  { n: "Sample Customer", c: "Gurugram", r: "Ordering on WhatsApp was quick and simple. Placeholder review." },
-  { n: "Sample Customer", c: "Delhi", r: "Lovely aroma — our parathas have never tasted better. Placeholder review." },
-];
+type FieldErrors = Partial<Record<"name" | "city" | "rating" | "comment", string>>;
+
+function Stars({ value }: { value: number }) {
+  return (
+    <div className="text-gold" aria-label={`${value} out of 5 stars`}>
+      {"★".repeat(value)}
+      <span className="opacity-30">{"★".repeat(5 - value)}</span>
+    </div>
+  );
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function ReviewForm({ onAdded }: { onAdded: (reviews: Review[]) => void }) {
+  const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [comment, setComment] = useState("");
+  const [website, setWebsite] = useState("");
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError("");
+    setSuccess("");
+    const input = { name, city, rating, comment, website };
+    const parsed = reviewInputSchema.safeParse(input);
+    if (!parsed.success) {
+      const next: FieldErrors = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0];
+        if ((key === "name" || key === "city" || key === "rating" || key === "comment") && !next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      if (Object.keys(next).length === 0) setFormError("Could not submit your review. Please try again.");
+      return;
+    }
+    setErrors({});
+    setSubmitting(true);
+    try {
+      const res = await addReview({ data: input });
+      onAdded(res.reviews);
+      setName("");
+      setCity("");
+      setRating(0);
+      setComment("");
+      setSuccess("Thank you! Your review has been added.");
+    } catch {
+      setFormError("Could not save your review right now. Please try again later.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const field =
+    "mt-1 w-full rounded-xl border bg-background px-4 py-3 text-base font-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+  const shown = hover || rating;
+
+  return (
+    <form onSubmit={onSubmit} noValidate className="relative mx-auto mt-14 max-w-2xl rounded-2xl bg-card p-6 shadow-warm sm:p-8">
+      <h3 className="text-center font-display text-3xl font-bold text-primary">Share Your Experience</h3>
+      <p className="mt-2 text-center text-muted-foreground">Tried our ghee? Tell others what you think.</p>
+
+      <div className="mt-6 grid gap-5 sm:grid-cols-2">
+        <label className="block text-sm font-semibold text-primary">
+          Your Name <span className="text-destructive">*</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={50}
+            autoComplete="name"
+            aria-invalid={!!errors.name}
+            className={`${field} ${errors.name ? "border-destructive" : "border-border"}`}
+            placeholder="e.g. Sunita Devi"
+          />
+          {errors.name && <span className="mt-1 block text-sm font-normal text-destructive">{errors.name}</span>}
+        </label>
+        <label className="block text-sm font-semibold text-primary">
+          City <span className="font-normal text-muted-foreground">(optional)</span>
+          <input
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            maxLength={40}
+            aria-invalid={!!errors.city}
+            className={`${field} ${errors.city ? "border-destructive" : "border-border"}`}
+            placeholder="e.g. Rohtak"
+          />
+          {errors.city && <span className="mt-1 block text-sm font-normal text-destructive">{errors.city}</span>}
+        </label>
+      </div>
+
+      <fieldset className="mt-5">
+        <legend className="text-sm font-semibold text-primary">
+          Rating <span className="text-destructive">*</span>
+        </legend>
+        <div className="mt-1 flex gap-1" onMouseLeave={() => setHover(0)}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setRating(n)}
+              onMouseEnter={() => setHover(n)}
+              aria-label={`${n} star${n > 1 ? "s" : ""}`}
+              aria-pressed={rating === n}
+              className={`p-1 text-4xl leading-none transition hover:scale-110 ${n <= shown ? "text-gold" : "text-muted-foreground/30"}`}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+        {errors.rating && <span className="mt-1 block text-sm text-destructive">{errors.rating}</span>}
+      </fieldset>
+
+      <label className="mt-5 block text-sm font-semibold text-primary">
+        Your Review <span className="text-destructive">*</span>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          maxLength={500}
+          rows={4}
+          aria-invalid={!!errors.comment}
+          className={`${field} resize-y ${errors.comment ? "border-destructive" : "border-border"}`}
+          placeholder="How was the taste, aroma and quality?"
+        />
+        <span className="mt-1 flex justify-between gap-2 text-sm font-normal">
+          <span className="text-destructive">{errors.comment}</span>
+          <span className="shrink-0 text-muted-foreground">{comment.trim().length}/500</span>
+        </span>
+      </label>
+
+      {/* Honeypot: hidden from people, catches simple spam bots */}
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+      />
+
+      {formError && <p role="alert" className="mt-4 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{formError}</p>}
+      {success && <p role="status" className="mt-4 rounded-xl bg-primary/10 px-4 py-3 text-sm text-primary">{success}</p>}
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="mt-6 w-full rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {submitting ? "Submitting..." : "Submit Review"}
+      </button>
+    </form>
+  );
+}
 
 function Reviews() {
+  const initial = Route.useLoaderData();
+  const [reviews, setReviews] = useState<Review[]>(initial ?? []);
+
   return (
-    <section className="bg-secondary px-5 py-24">
+    <section id="reviews" className="scroll-mt-20 bg-secondary px-5 py-24">
       <div className="mx-auto max-w-7xl">
         <SectionTitle eyebrow="Testimonials" title="What Our Customers Say" />
-        <div className="grid gap-6 md:grid-cols-3">
-          {REVIEWS.map((r, i) => (
-            <figure key={i} className="reveal rounded-2xl bg-card p-8 shadow-warm">
-              <div className="text-gold">★★★★★</div>
-              <blockquote className="mt-4 font-display text-xl italic leading-relaxed text-foreground">“{r.r}”</blockquote>
-              <figcaption className="mt-5 font-semibold text-primary">{r.n} <span className="font-normal text-muted-foreground">· {r.c}</span></figcaption>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {reviews.map((r) => (
+            <figure key={r.id} className="animate-in fade-in slide-in-from-bottom-4 rounded-2xl bg-card p-8 shadow-warm duration-500">
+              <div className="flex items-center justify-between gap-3">
+                <Stars value={r.rating} />
+                <span className="text-xs text-muted-foreground">{formatDate(r.createdAt)}</span>
+              </div>
+              <blockquote className="mt-4 whitespace-pre-line break-words font-display text-xl italic leading-relaxed text-foreground">“{r.comment}”</blockquote>
+              <figcaption className="mt-5 break-words font-semibold text-primary">
+                {r.name}
+                {r.city && <span className="font-normal text-muted-foreground"> · {r.city}</span>}
+              </figcaption>
             </figure>
           ))}
         </div>
+        {reviews.length === 0 && (
+          <p className="mx-auto max-w-xl rounded-2xl bg-card p-8 text-center text-muted-foreground shadow-warm">
+            No reviews yet. Be the first to share your experience!
+          </p>
+        )}
+        <ReviewForm onAdded={setReviews} />
       </div>
     </section>
   );
@@ -275,8 +449,26 @@ function Contact() {
           <WaIcon /> Chat on WhatsApp
         </a>
         <div className="mt-10 grid gap-4 text-sm sm:grid-cols-3">
-          <div><p className="text-gold">Phone</p><p>{SITE.phone || "Coming soon"}</p></div>
-          <div><p className="text-gold">Email</p><p>{SITE.email || "Coming soon"}</p></div>
+          <div>
+            <p className="text-gold">Phone</p>
+            <p>
+              {SITE.phone ? (
+                <a href={`tel:${SITE.phone.replace(/\s+/g, "")}`} className="hover:text-gold">{SITE.phone}</a>
+              ) : (
+                "Coming soon"
+              )}
+            </p>
+          </div>
+          <div>
+            <p className="text-gold">Email</p>
+            <p className="break-all">
+              {SITE.email ? (
+                <a href={`mailto:${SITE.email}`} className="hover:text-gold">{SITE.email}</a>
+              ) : (
+                "Coming soon"
+              )}
+            </p>
+          </div>
           <div><p className="text-gold">Address</p><p>{SITE.address}</p></div>
         </div>
       </div>

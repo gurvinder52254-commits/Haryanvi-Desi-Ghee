@@ -3,9 +3,9 @@ export const SITE = {
   brand: "Haryanvi Desi Ghee",
   // WhatsApp number in international format, digits only (e.g. "919876543210"). Leave empty until provided.
   whatsappNumber: "918569852254",
-  phone: "",
-  email: "",
-  address: "Haryana, India",
+  phone: "+91 85698 52254",
+  email: "gurvinder52254@gmail.com",
+  address: "Mohali, Chandigarh",
   // Optional promotional video URL (mp4). When empty, the hero shows the poster image.
   heroVideoUrl: "",
 };
