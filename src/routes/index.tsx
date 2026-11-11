@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import poster from "@/assets/hero-poster.jpg";
 import jar from "@/assets/ghee-jar.jpg";
 import village from "@/assets/village.jpg";
-import { PRODUCTS, SITE, whatsappLink, type Product } from "@/config/site";
+import { FIRST_ORDER_DISCOUNT, PRODUCTS, SITE, discountedPrice, rupees, whatsappLink, type Product } from "@/config/site";
 import { addReview, getReviews, reviewInputSchema, type Review } from "@/lib/reviews";
 
 export const Route = createFileRoute("/")({
@@ -154,6 +154,8 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
 
 function ProductCard({ p, i }: { p: Product; i: number }) {
   const [qty, setQty] = useState(1);
+  const price = discountedPrice(p);
+  const hasOffer = FIRST_ORDER_DISCOUNT > 0 && price < p.mrp;
   return (
     <div className="reveal group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-warm transition duration-500 hover:-translate-y-2" style={{ transitionDelay: `${i * 80}ms` }}>
       <div className="relative aspect-square overflow-hidden bg-secondary">
@@ -164,7 +166,16 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
       <div className="flex flex-1 flex-col p-6">
         <h3 className="text-2xl font-bold text-primary">{p.name}</h3>
         <p className="text-sm text-muted-foreground">Packing: {p.weight}</p>
-        <p className="mt-3 font-display text-4xl font-bold text-earth">₹{p.price.toLocaleString("en-IN")}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="font-display text-4xl font-bold text-earth">{rupees(price)}</p>
+          {hasOffer && (
+            <>
+              <s className="text-lg text-muted-foreground" aria-label={`Original price ${rupees(p.mrp)}`}>{rupees(p.mrp)}</s>
+              <span className="rounded-full bg-whatsapp/15 px-2.5 py-0.5 text-xs font-bold text-whatsapp">{FIRST_ORDER_DISCOUNT}% OFF</span>
+            </>
+          )}
+        </div>
+        {hasOffer && <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">First order offer</p>}
         <div className="mt-4 flex items-center gap-3">
           <span className="text-sm text-muted-foreground">Qty</span>
           <div className="flex items-center rounded-full border border-border">
@@ -172,6 +183,18 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
             <span className="w-6 text-center font-semibold">{qty}</span>
             <button aria-label="Increase" onClick={() => setQty(qty + 1)} className="px-3 py-1 text-lg">+</button>
           </div>
+        </div>
+        <div className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm" aria-live="polite">
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">Total ({qty} × {rupees(price)})</span>
+            <span className="font-bold text-primary">{rupees(price * qty)}</span>
+          </div>
+          {hasOffer && (
+            <div className="mt-1 flex justify-between gap-2 text-whatsapp">
+              <span>You save</span>
+              <span className="font-semibold">{rupees((p.mrp - price) * qty)}</span>
+            </div>
+          )}
         </div>
         <a href={whatsappLink(p, qty)} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-5 py-3 font-semibold text-whatsapp-foreground transition hover:brightness-110">
           <WaIcon /> Buy Now
