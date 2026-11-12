@@ -4,6 +4,7 @@ import poster from "@/assets/hero-poster.jpg";
 import jar from "@/assets/ghee-jar.jpg";
 import village from "@/assets/village.jpg";
 import { FIRST_ORDER_DISCOUNT, PRODUCTS, SITE, discountedPrice, rupees, whatsappLink, type Product } from "@/config/site";
+import { Footer, Header, WaIcon } from "@/components/site-layout";
 import { addReview, getReviews, reviewInputSchema, type Review } from "@/lib/reviews";
 
 export const Route = createFileRoute("/")({
@@ -21,21 +22,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const NAV = [
-  { href: "#home", label: "Home" },
-  { href: "#products", label: "Our Products" },
-  { href: "#about", label: "About Us" },
-  { href: "#contact", label: "Contact Us" },
-];
-
-function WaIcon({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-1 1.2-.4.2-.7.1a8 8 0 0 1-4-3.5c-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-1-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.5 13.5 0 0 0 5.2 4.6c1.9.8 2.7.9 3.6.7a3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.3zM12 21.8a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A9.8 9.8 0 1 1 12 21.8zm8.4-18.2A11.8 11.8 0 0 0 1.8 17.8L.1 24l6.3-1.7a11.8 11.8 0 0 0 5.6 1.4A11.8 11.8 0 0 0 20.4 3.6z" />
-    </svg>
-  );
-}
-
 function useReveal() {
   useEffect(() => {
     const els = document.querySelectorAll(".reveal");
@@ -52,7 +38,7 @@ function Index() {
   useReveal();
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header overHero />
       <Hero />
       <Products />
       <About />
@@ -61,56 +47,6 @@ function Index() {
       <Contact />
       <Footer />
     </div>
-  );
-}
-
-function Header() {
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const f = () => setScrolled(window.scrollY > 40);
-    f();
-    window.addEventListener("scroll", f);
-    return () => window.removeEventListener("scroll", f);
-  }, []);
-  const solid = scrolled || open;
-  return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${solid ? "bg-background/95 shadow-warm backdrop-blur" : "bg-transparent"}`}>
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-        <a href="#home" className={`font-display text-2xl font-bold ${solid ? "text-primary" : "text-primary-foreground"}`}>
-          Haryanvi <span className={solid ? "text-earth" : "text-gold"}>Desi Ghee</span>
-        </a>
-        <nav className="hidden items-center gap-8 md:flex">
-          {NAV.map((n) => (
-            <a key={n.href} href={n.href} className={`text-sm font-medium tracking-wide transition-colors hover:text-gold ${solid ? "text-foreground" : "text-primary-foreground"}`}>
-              {n.label}
-            </a>
-          ))}
-          <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-5 py-2.5 text-sm font-semibold text-whatsapp-foreground transition hover:scale-105">
-            <WaIcon className="h-4 w-4" /> WhatsApp Order
-          </a>
-        </nav>
-        <button aria-label="Menu" onClick={() => setOpen(!open)} className={`md:hidden ${solid ? "text-foreground" : "text-primary-foreground"}`}>
-          <div className="space-y-1.5">
-            <span className={`block h-0.5 w-6 bg-current transition ${open ? "translate-y-2 rotate-45" : ""}`} />
-            <span className={`block h-0.5 w-6 bg-current transition ${open ? "opacity-0" : ""}`} />
-            <span className={`block h-0.5 w-6 bg-current transition ${open ? "-translate-y-2 -rotate-45" : ""}`} />
-          </div>
-        </button>
-      </div>
-      <div className={`overflow-hidden transition-all duration-300 md:hidden ${open ? "max-h-96" : "max-h-0"}`}>
-        <nav className="flex flex-col gap-1 px-5 pb-5">
-          {NAV.map((n) => (
-            <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="border-b border-border py-3 font-medium text-foreground">
-              {n.label}
-            </a>
-          ))}
-          <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-5 py-3 font-semibold text-whatsapp-foreground">
-            <WaIcon /> WhatsApp Order
-          </a>
-        </nav>
-      </div>
-    </header>
   );
 }
 
@@ -496,30 +432,5 @@ function Contact() {
         </div>
       </div>
     </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="bg-overlay px-5 pt-16 pb-8 text-primary-foreground">
-      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-4">
-        <div className="md:col-span-2">
-          <p className="font-display text-3xl font-bold">Haryanvi <span className="text-gold">Desi Ghee</span></p>
-          <p className="mt-3 max-w-sm opacity-75">Traditional desi ghee with the authentic taste of Haryana, delivered to your home.</p>
-        </div>
-        <div>
-          <p className="font-semibold text-gold">Quick Links</p>
-          <ul className="mt-3 space-y-2 opacity-80">{NAV.map((n) => <li key={n.href}><a href={n.href} className="hover:text-gold">{n.label}</a></li>)}</ul>
-        </div>
-        <div>
-          <p className="font-semibold text-gold">Products</p>
-          <ul className="mt-3 space-y-2 opacity-80">{PRODUCTS.map((p) => <li key={p.id}><a href={whatsappLink(p)} target="_blank" rel="noopener noreferrer" className="hover:text-gold">Desi Ghee {p.weight}</a></li>)}</ul>
-        </div>
-      </div>
-      <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-primary-foreground/15 pt-6 text-sm opacity-70 sm:flex-row">
-        <p>© {new Date().getFullYear()} Haryanvi Desi Ghee. All rights reserved.</p>
-        <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-gold"><WaIcon className="h-4 w-4" /> WhatsApp us</a>
-      </div>
-    </footer>
   );
 }
