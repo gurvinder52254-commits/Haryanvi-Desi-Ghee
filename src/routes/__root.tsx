@@ -81,6 +81,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Haryanvi Desi Ghee" },
       { name: "description", content: "Traditional Haryanvi desi ghee, ordered on WhatsApp." },
       { name: "author", content: "Haryanvi Desi Ghee" },
+      // Google Search Console ownership check (this code is meant to be public).
+      { name: "google-site-verification", content: "wxGGHhyXeFFpqWcEeD9hQllB-1o6T8yJ_6Ja5KjIe1s" },
       { property: "og:title", content: "Haryanvi Desi Ghee" },
       { property: "og:description", content: "Traditional Haryanvi desi ghee, ordered on WhatsApp." },
       { property: "og:type", content: "website" },
