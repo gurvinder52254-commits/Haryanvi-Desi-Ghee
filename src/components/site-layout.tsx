@@ -19,6 +19,19 @@ export function WaIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
+// Brand mark: a golden ghee drop inside a green badge with a gold ring.
+export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden>
+      <circle cx="24" cy="24" r="23" className="fill-primary" />
+      <circle cx="24" cy="24" r="19.5" fill="none" strokeWidth="1.2" className="stroke-gold" opacity="0.85" />
+      <path d="M24 9.5C24 9.5 15.5 20 15.5 27.5a8.5 8.5 0 0 0 17 0C32.5 20 24 9.5 24 9.5Z" className="fill-gold" />
+      <ellipse cx="20.6" cy="29" rx="2.1" ry="2.6" className="fill-primary-foreground" opacity="0.85" />
+      <path d="M17 39.5h14" strokeWidth="1.4" strokeLinecap="round" className="stroke-gold" opacity="0.85" />
+    </svg>
+  );
+}
+
 // `overHero`: header starts transparent over the home page hero image and turns
 // solid on scroll. Other pages have no hero, so the header is always solid.
 export function Header({ overHero = false }: { overHero?: boolean }) {
@@ -34,8 +47,16 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
   return (
     <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${solid ? "bg-background/95 shadow-warm backdrop-blur" : "bg-transparent"}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-        <a href="/" className={`font-display text-2xl font-bold ${solid ? "text-primary" : "text-primary-foreground"}`}>
-          Haryanvi <span className={solid ? "text-earth" : "text-gold"}>Desi Ghee</span>
+        <a href="/" aria-label="Haryanvi Desi Ghee – Home" className="flex items-center gap-3">
+          <LogoMark className="h-10 w-10 shrink-0 drop-shadow-sm sm:h-11 sm:w-11" />
+          <span className="flex flex-col leading-none">
+            <span className={`font-display text-xl font-bold sm:text-2xl ${solid ? "text-primary" : "text-primary-foreground"}`}>
+              Haryanvi <span className={solid ? "text-earth" : "text-gold"}>Desi Ghee</span>
+            </span>
+            <span className={`mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.25em] sm:block ${solid ? "text-muted-foreground" : "text-primary-foreground/80"}`}>
+              Asli Haryane Ka Swad
+            </span>
+          </span>
         </a>
         <nav className="hidden items-center gap-6 lg:gap-8 md:flex">
           {NAV.map((n) => (
