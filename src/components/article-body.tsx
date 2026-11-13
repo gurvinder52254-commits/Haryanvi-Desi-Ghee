@@ -71,7 +71,7 @@ function renderInline(text: string): ReactNode[] {
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
-    const href = safeHref(m[2]);
+    const href = safeHref(m[2] ?? "");
     if (!href) continue;
     if (m.index > last) out.push(text.slice(last, m.index));
     const external = href.startsWith("https://");

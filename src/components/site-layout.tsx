@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { PRODUCTS, whatsappLink } from "@/config/site";
+import { GHEE_TYPES, PRODUCTS, whatsappLink } from "@/config/site";
 
 // Links work from every page: "/#products" scrolls on the home page and
 // navigates back to it from other pages.
@@ -115,13 +115,18 @@ export function Footer() {
         </div>
         <div>
           <p className="font-semibold text-gold">Products</p>
-          <ul className="mt-3 space-y-2 opacity-80">
-            {PRODUCTS.map((p) => (
-              <li key={p.id}>
-                <a href={whatsappLink(p)} target="_blank" rel="noopener noreferrer" className="hover:text-gold">Desi Ghee {p.weight}</a>
-              </li>
-            ))}
-          </ul>
+          {GHEE_TYPES.map((t) => (
+            <div key={t.id} className="mt-3">
+              <p className="text-sm font-semibold opacity-90">{t.label}</p>
+              <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm opacity-80">
+                {PRODUCTS.filter((p) => p.type === t.id).map((p) => (
+                  <li key={p.id}>
+                    <a href={whatsappLink(p)} target="_blank" rel="noopener noreferrer" className="hover:text-gold" aria-label={`Order ${t.label} ${p.weight} on WhatsApp`}>{p.weight}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-primary-foreground/15 pt-6 text-sm opacity-70 sm:flex-row">

@@ -31,7 +31,7 @@ export type BlogPostSummary = Omit<BlogPost, "content"> & { readMinutes: number 
 
 async function storePath() {
   const path = await import("node:path");
-  return process.env.BLOG_FILE || path.join(process.cwd(), "data", "blog-posts.json");
+  return process.env["BLOG_FILE"] || path.join(process.cwd(), "data", "blog-posts.json");
 }
 
 async function readAll(): Promise<BlogPost[]> {
@@ -172,8 +172,9 @@ export const adminSavePost = createServerFn({ method: "POST" })
       };
       let saved: BlogPost;
       const idx = data.id ? all.findIndex((p) => p.id === data.id) : -1;
-      if (idx >= 0) {
-        saved = { ...all[idx], ...fields, updatedAt: now };
+      const existing = idx >= 0 ? all[idx] : undefined;
+      if (existing) {
+        saved = { ...existing, ...fields, updatedAt: now };
         all[idx] = saved;
       } else {
         saved = { id: crypto.randomUUID(), ...fields, createdAt: now, updatedAt: now };

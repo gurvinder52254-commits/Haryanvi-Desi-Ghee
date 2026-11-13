@@ -12,7 +12,7 @@ const COOKIE = "hdg_admin";
 const SESSION_HOURS = 12;
 
 function hmac(message: string) {
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || "";
+  const secret = process.env["ADMIN_SESSION_SECRET"] || process.env["ADMIN_PASSWORD"] || "";
   return crypto.createHmac("sha256", secret).update(message).digest("hex");
 }
 
@@ -23,7 +23,7 @@ function safeEqual(a: string, b: string) {
 }
 
 function tokenValid(token: string | undefined) {
-  if (!token || !process.env.ADMIN_PASSWORD) return false;
+  if (!token || !process.env["ADMIN_PASSWORD"]) return false;
   const [expStr, sig] = token.split(".");
   const expires = Number(expStr);
   if (!expires || !sig || expires < Date.now()) return false;
@@ -31,7 +31,7 @@ function tokenValid(token: string | undefined) {
 }
 
 export function adminConfigured() {
-  return Boolean(process.env.ADMIN_PASSWORD);
+  return Boolean(process.env["ADMIN_PASSWORD"]);
 }
 
 export function isAdmin() {
@@ -47,7 +47,7 @@ export function requireAdmin() {
 const attempts = new Map<string, { count: number; first: number; last: number }>();
 
 export function login(password: string) {
-  const expected = process.env.ADMIN_PASSWORD;
+  const expected = process.env["ADMIN_PASSWORD"];
   if (!expected) throw new Error("Admin login is not set up. Add ADMIN_PASSWORD on the server.");
 
   const ip = getRequestIP({ xForwardedFor: true }) || "unknown";
@@ -69,7 +69,7 @@ export function login(password: string) {
   setCookie(COOKIE, `${expires}.${hmac(`admin:${expires}`)}`, {
     httpOnly: true,
     sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env["NODE_ENV"] === "production",
     path: "/",
     maxAge: SESSION_HOURS * 60 * 60,
   });

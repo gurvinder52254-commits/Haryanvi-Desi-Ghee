@@ -12,16 +12,28 @@ export const SITE = {
 
 // mrp = original price (shown with a strikethrough). The selling price is calculated
 // automatically from mrp and FIRST_ORDER_DISCOUNT, so to change a price, change mrp only.
-export type Product = { id: string; name: string; weight: string; mrp: number; tag?: string };
+export type GheeType = "cow" | "buffalo";
+export type Product = { id: string; type: GheeType; name: string; weight: string; mrp: number; tag?: string };
+
+export const GHEE_TYPES: { id: GheeType; label: string; hindi: string }[] = [
+  { id: "cow", label: "Cow Desi Ghee", hindi: "गाय का घी" },
+  { id: "buffalo", label: "Buffalo Desi Ghee", hindi: "भैंस का घी" },
+];
 
 // First-time customer discount in percent. Set to 0 to turn the offer off.
 export const FIRST_ORDER_DISCOUNT = 20;
 
 export const PRODUCTS: Product[] = [
-  { id: "250g", name: "Haryanvi Desi Ghee", weight: "250 GM", mrp: 625 },
-  { id: "500g", name: "Haryanvi Desi Ghee", weight: "500 GM", mrp: 1250 },
-  { id: "1kg", name: "Haryanvi Desi Ghee", weight: "1 KG", mrp: 2500, tag: "Bestseller" },
-  { id: "5kg", name: "Haryanvi Desi Ghee", weight: "5 KG", mrp: 12500, tag: "Family Pack" },
+  // Cow desi ghee: 1 KG MRP ₹2,500, first order ₹2,000
+  { id: "250g", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "250 GM", mrp: 625 },
+  { id: "500g", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "500 GM", mrp: 1250 },
+  { id: "1kg", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "1 KG", mrp: 2500, tag: "Bestseller" },
+  { id: "5kg", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "5 KG", mrp: 12500, tag: "Family Pack" },
+  // Buffalo desi ghee: 1 KG MRP ₹1,875, first order ₹1,500
+  { id: "buffalo-250g", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "250 GM", mrp: 469 },
+  { id: "buffalo-500g", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "500 GM", mrp: 938 },
+  { id: "buffalo-1kg", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "1 KG", mrp: 1875, tag: "Bestseller" },
+  { id: "buffalo-5kg", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "5 KG", mrp: 9375, tag: "Family Pack" },
 ];
 
 // Price after the first-order discount, rounded to whole rupees.

@@ -1,4 +1,4 @@
-import { FIRST_ORDER_DISCOUNT, PRODUCTS, discountedPrice, rupees } from "@/config/site";
+import { FIRST_ORDER_DISCOUNT, GHEE_TYPES, PRODUCTS, discountedPrice, rupees } from "@/config/site";
 import type { BlogPost } from "./blog";
 
 // Starter articles shown until the admin saves their first change.
@@ -9,11 +9,15 @@ import type { BlogPost } from "./blog";
 
 const AUTHOR = "Haryanvi Desi Ghee";
 
-const priceList = PRODUCTS.map(
-  (p) => `- ${p.weight}: MRP ${rupees(p.mrp)}, first order price ${rupees(discountedPrice(p))} (${FIRST_ORDER_DISCOUNT}% OFF)`,
-).join("\n");
+const priceList = GHEE_TYPES.map(
+  (t) =>
+    `${t.label} (${t.hindi}):\n\n` +
+    PRODUCTS.filter((p) => p.type === t.id)
+      .map((p) => `- ${p.weight}: MRP ${rupees(p.mrp)}, first order price ${rupees(discountedPrice(p))} (${FIRST_ORDER_DISCOUNT}% OFF)`)
+      .join("\n"),
+).join("\n\n");
 
-const oneKg = PRODUCTS.find((p) => p.id === "1kg") ?? PRODUCTS[0];
+const oneKg = PRODUCTS.find((p) => p.id === "1kg") ?? (PRODUCTS[0] as (typeof PRODUCTS)[number]);
 
 function post(p: Omit<BlogPost, "author" | "published" | "updatedAt">): BlogPost {
   return { ...p, author: AUTHOR, published: true, updatedAt: p.createdAt };
@@ -38,7 +42,7 @@ export const SEED_POSTS: BlogPost[] = [
 - Packing and delivery: glass or tin jars, safe packing and transport all add to the final ghee rate.
 
 ## Haryanvi Desi Ghee price list
-Our prices are the same rate for every pack size, so you pay the same per gram whether you buy a small jar or a family pack:
+We sell both cow desi ghee and buffalo desi ghee. Within each type, every pack size is the same rate, so you pay the same per gram whether you buy a small jar or a family pack:
 
 ${priceList}
 

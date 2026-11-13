@@ -50,7 +50,7 @@ function clean(s: string) {
 
 async function storePath() {
   const path = await import("node:path");
-  return process.env.REVIEWS_FILE || path.join(process.cwd(), "data", "reviews.json");
+  return process.env["REVIEWS_FILE"] || path.join(process.cwd(), "data", "reviews.json");
 }
 
 async function readAll(): Promise<Review[]> {

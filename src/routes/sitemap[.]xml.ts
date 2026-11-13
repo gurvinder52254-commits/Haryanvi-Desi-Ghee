@@ -6,10 +6,10 @@ import { listPublishedPosts } from "@/lib/blog";
 // otherwise from the incoming request.
 
 function siteOrigin(request: Request) {
-  const fromEnv = process.env.SITE_URL?.trim().replace(/\/+$/, "");
+  const fromEnv = process.env["SITE_URL"]?.trim().replace(/\/+$/, "");
   if (fromEnv) return fromEnv;
   const url = new URL(request.url);
-  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0].trim() || url.protocol.replace(":", "");
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || url.protocol.replace(":", "");
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
   return `${proto}://${host}`;
 }
