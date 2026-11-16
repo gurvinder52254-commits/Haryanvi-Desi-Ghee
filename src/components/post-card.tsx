@@ -8,7 +8,7 @@ const FALLBACK_IMAGES = [jar, village, poster];
 
 // Posts without their own cover image get one of the site's photos.
 export function coverFor(post: { coverImage: string }, i: number) {
-  return post.coverImage || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length];
+  return post.coverImage || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length] || jar;
 }
 
 export function PostCard({ post, i, large = false }: { post: BlogPostSummary; i: number; large?: boolean }) {

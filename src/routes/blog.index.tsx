@@ -2,17 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/site-layout";
 import { PostCard } from "@/components/post-card";
 import { listPublishedPosts } from "@/lib/blog";
+import { SITE } from "@/config/site";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
       { title: "Desi Ghee Blog: Price 1kg, Benefits & Buying Guide | Haryanvi Desi Ghee" },
-      { name: "description", content: "Read about desi ghee price 1kg, ghee benefits, how to pick the best desi ghee in India, A2 desi cow ghee, malai se ghee kaise nikale and shudh desi ghee tips." },
-      { name: "keywords", content: "desi ghee, desi ghee price, desi ghee price 1kg, ghee rate, best desi ghee in india, desi cow ghee, cow desi ghee, a2 desi cow ghee, shudh desi ghee, pure ghee, ghee benefits, desi ghee in hindi, desi ghee online" },
+      { name: "description", content: "Desi ghee guides: price 1kg, cow vs buffalo ghee, bilona & A2 ghee, desi ghee khane ke fayde, how to check pure ghee, tin price, GST and HSN code." },
+      { name: "keywords", content: "desi ghee, desi ghee price, desi ghee price 1kg, cow desi ghee, desi cow ghee, buffalo ghee, bilona ghee, a2 ghee, a2 desi ghee, pure desi ghee, shudh desi ghee, desi ghee benefits, desi ghee khane ke fayde, desi ghee in hindi, desi ghee tin price, desi ghee gst rate, desi ghee hsn code, desi ghee online" },
       { property: "og:title", content: "Desi Ghee Blog – Price, Benefits & Buying Guide" },
-      { property: "og:description", content: "Read about desi ghee price 1kg, ghee benefits, how to pick the best desi ghee in India, A2 desi cow ghee, malai se ghee kaise nikale and shudh desi ghee tips." },
+      { property: "og:description", content: "Desi ghee guides: price 1kg, cow vs buffalo ghee, bilona & A2 ghee, desi ghee khane ke fayde, how to check pure ghee, tin price, GST and HSN code." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE.url}/blog` },
     ],
+    links: [{ rel: "canonical", href: `${SITE.url}/blog` }],
   }),
   loader: () => listPublishedPosts(),
   component: BlogIndex,

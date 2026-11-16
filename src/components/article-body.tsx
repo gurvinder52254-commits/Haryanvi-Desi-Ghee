@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 // Renders the simple blog text format safely (no HTML is ever injected):
 //   blank line  -> new paragraph
 //   "## Title"  -> heading
+//   "### Title" -> sub-heading
 //   "- item"    -> bullet list
 //   "[text](/blog/some-post)" -> link (only site links starting with "/" or https:// links)
 export function ArticleBody({ content }: { content: string }) {
@@ -31,10 +32,19 @@ export function ArticleBody({ content }: { content: string }) {
     };
 
     for (const line of lines) {
-      if (line.startsWith("## ")) {
+      if (line.startsWith("### ")) {
         flushPara();
         flushList();
-        out.push(<h2 key={`h${bi}-${out.length}`}>{renderInline(line.slice(3))}</h2>);
+        out.push(<h3 key={`h3${bi}-${out.length}`}>{renderInline(line.slice(4))}</h3>);
+      } else if (line.startsWith("## ")) {
+        flushPara();
+        flushList();
+        const text = line.slice(3);
+        out.push(
+          <h2 key={`h${bi}-${out.length}`} id={headingId(text)} className="scroll-mt-28">
+            {renderInline(text)}
+          </h2>,
+        );
       } else if (/^[-*] /.test(line)) {
         flushPara();
         list.push(line.slice(2));
@@ -48,10 +58,35 @@ export function ArticleBody({ content }: { content: string }) {
   });
 
   return (
-    <div className="space-y-5 break-words text-lg leading-relaxed text-foreground/90 [&_h2]:pt-4 [&_h2]:font-display [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-primary [&_li]:pl-1 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6 [&_li]:marker:text-gold [&_a]:font-semibold [&_a]:text-earth [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+    <div className="space-y-5 break-words text-lg leading-relaxed text-foreground/90 [&_h2]:pt-4 [&_h2]:font-display [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-primary [&_h3]:pt-2 [&_h3]:font-display [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:text-earth [&_li]:pl-1 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6 [&_li]:marker:text-gold [&_a]:font-semibold [&_a]:text-earth [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
       {out}
     </div>
   );
+}
+
+// Link anchor for a "## " heading, e.g. "Price per kg" -> "price-per-kg".
+export function headingId(text: string) {
+  const plain = text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  const id = plain
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60);
+  return id || "section";
+}
+
+/** The "## " headings of an article, for a table of contents. */
+export function headingsOf(content: string) {
+  return content
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith("## "))
+    .map((l) => {
+      const text = l.slice(3).replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+      return { id: headingId(text), text };
+    });
 }
 
 export function formatDate(iso: string) {

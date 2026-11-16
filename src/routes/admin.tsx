@@ -133,7 +133,25 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
   );
 }
 
-const EMPTY: PostInput = { title: "", slug: "", excerpt: "", content: "", coverImage: "", author: "", metaTitle: "", metaDescription: "", keywords: "", published: true };
+const EMPTY: PostInput = { title: "", slug: "", excerpt: "", content: "", coverImage: "", author: "", metaTitle: "", metaDescription: "", keywords: "", faqs: [], published: true };
+
+const FAQ_PLACEHOLDER = ["Q: Is desi ghee good for health?", "A: In small amounts, pure desi ghee can be part of a balanced diet...", "", "Q: What is the GST rate on ghee?", "A: ..."].join("\n");
+
+// FAQs are typed as "Q: question" then "A: answer" lines, with a blank line between pairs.
+function faqsToText(faqs: PostInput["faqs"]) {
+  return (faqs ?? []).map((f) => `Q: ${f.q}\nA: ${f.a}`).join("\n\n");
+}
+
+function textToFaqs(text: string): { faqs: { q: string; a: string }[]; error: string } {
+  const faqs: { q: string; a: string }[] = [];
+  const blocks = text.replace(/\r\n/g, "\n").split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  for (const [i, block] of blocks.entries()) {
+    const m = block.match(/^Q:\s*([\s\S]*?)\n\s*A:\s*([\s\S]+)$/i);
+    if (!m) return { faqs: [], error: `FAQ ${i + 1}: write it as "Q: question" on one line and "A: answer" on the next.` };
+    faqs.push({ q: (m[1] ?? "").trim(), a: (m[2] ?? "").trim().replace(/\s*\n\s*/g, " ") });
+  }
+  return { faqs, error: "" };
+}
 
 function BlogManager({ onSessionExpired }: { onSessionExpired: () => void }) {
   const [posts, setPosts] = useState<BlogPost[] | null>(null);
@@ -233,6 +251,7 @@ type Errors = Partial<Record<keyof PostInput, string>>;
 
 function PostEditor({ initial, onCancel, onSaved, onSessionExpired }: { initial: PostInput; onCancel: () => void; onSaved: (p: BlogPost) => void; onSessionExpired: () => void }) {
   const [form, setForm] = useState<PostInput>(initial);
+  const [faqText, setFaqText] = useState(() => faqsToText(initial.faqs));
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -243,7 +262,13 @@ function PostEditor({ initial, onCancel, onSaved, onSessionExpired }: { initial:
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
-    const data = { ...form, slug: form.slug ? slugify(form.slug) : "" };
+    const parsedFaqs = textToFaqs(faqText);
+    if (parsedFaqs.error) {
+      setErrors({ faqs: parsedFaqs.error });
+      setFormError("Please fix the highlighted fields.");
+      return;
+    }
+    const data = { ...form, slug: form.slug ? slugify(form.slug) : "", faqs: parsedFaqs.faqs };
     const parsed = postInputSchema.safeParse(data);
     if (!parsed.success) {
       const next: Errors = {};
@@ -296,7 +321,7 @@ function PostEditor({ initial, onCancel, onSaved, onSessionExpired }: { initial:
           Article *
           <textarea value={form.content} onChange={(e) => set("content", e.target.value)} rows={16} className={`${cls("content")} font-mono text-sm`} />
           <span className="mt-1 block text-xs font-normal text-muted-foreground">
-            Leave an empty line between paragraphs. Start a line with <code>## </code> for a heading, or <code>- </code> for a bullet point. Add a link like <code>[desi ghee price](/blog/desi-ghee-price-1kg-in-india)</code>.
+            Leave an empty line between paragraphs. Start a line with <code>## </code> for a heading, <code>### </code> for a sub-heading, or <code>- </code> for a bullet point. Add a link like <code>[desi ghee price](/blog/desi-ghee-price-1kg-in-india)</code>.
           </span>
           {err("content")}
         </label>
@@ -335,6 +360,12 @@ function PostEditor({ initial, onCancel, onSaved, onSessionExpired }: { initial:
             </label>
           </div>
         </fieldset>
+        <label className="block text-sm font-semibold text-primary">
+          FAQs <span className="font-normal text-muted-foreground">(optional, shown at the end of the article and sent to Google)</span>
+          <textarea value={faqText} onChange={(e) => setFaqText(e.target.value)} rows={8} placeholder={FAQ_PLACEHOLDER} className={`${cls("faqs")} font-mono text-sm`} />
+          <span className="mt-1 block text-xs font-normal text-muted-foreground">Write each question on a line starting with <code>Q:</code> and its answer on the next line starting with <code>A:</code>. Leave an empty line between FAQs. Up to 15.</span>
+          {err("faqs")}
+        </label>
         <label className="flex items-center gap-3 text-sm font-semibold text-primary">
           <input type="checkbox" checked={form.published} onChange={(e) => set("published", e.target.checked)} className="h-5 w-5 accent-[var(--color-primary)]" />
           Published (show on the website). Untick to save as a draft.

@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
 import { SEED_POSTS } from "./blog-seed";
+import { MORE_SEED_POSTS } from "./blog-seed-2";
+
+const ALL_SEEDS = [...SEED_POSTS, ...MORE_SEED_POSTS];
 async function requireAdmin() {
   const s = await import("./admin-session.server");
   s.requireAdmin();
@@ -12,8 +15,10 @@ export type BlogPost = {
   slug: string;
   title: string;
   excerpt: string;
-  // Plain text. Blank line = new paragraph, "## " = heading, "- " = bullet point.
+  // Plain text. Blank line = new paragraph, "## " = heading, "### " = sub-heading, "- " = bullet point.
   content: string;
+  // Optional questions and answers shown at the end of the article (and sent to Google as FAQ data).
+  faqs?: { q: string; a: string }[];
   coverImage: string;
   author: string;
   // Optional SEO fields. When empty, the title and excerpt are used.
@@ -34,16 +39,47 @@ async function storePath() {
   return process.env["BLOG_FILE"] || path.join(process.cwd(), "data", "blog-posts.json");
 }
 
-async function readAll(): Promise<BlogPost[]> {
+// Starter articles the admin deleted, so they are not added back.
+async function deletedSeedsPath() {
+  return `${await storePath()}.deleted-seeds.json`;
+}
+
+async function readDeletedSeeds(): Promise<string[]> {
   const fs = await import("node:fs/promises");
   try {
+    const data = JSON.parse(await fs.readFile(await deletedSeedsPath(), "utf8"));
+    return Array.isArray(data) ? data.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+async function rememberDeletedSeed(id: string) {
+  if (!ALL_SEEDS.some((p) => p.id === id)) return;
+  const fs = await import("node:fs/promises");
+  const list = new Set(await readDeletedSeeds());
+  list.add(id);
+  await fs.writeFile(await deletedSeedsPath(), JSON.stringify([...list]), "utf8");
+}
+
+async function readAll(): Promise<BlogPost[]> {
+  const fs = await import("node:fs/promises");
+  let saved: BlogPost[];
+  try {
     const data = JSON.parse(await fs.readFile(await storePath(), "utf8"));
-    return Array.isArray(data) ? (data as BlogPost[]) : [];
+    saved = Array.isArray(data) ? (data as BlogPost[]) : [];
   } catch (err) {
     // No file yet: show the starter articles.
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return SEED_POSTS.map((p) => ({ ...p }));
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return ALL_SEEDS.map((p) => ({ ...p }));
     throw err;
   }
+  // Newer starter articles are added even after the admin has saved posts,
+  // unless the admin deleted them or a post already uses the same address.
+  const deleted = new Set(await readDeletedSeeds());
+  const ids = new Set(saved.map((p) => p.id));
+  const slugs = new Set(saved.map((p) => p.slug));
+  const extra = ALL_SEEDS.filter((p) => !ids.has(p.id) && !slugs.has(p.slug) && !deleted.has(p.id)).map((p) => ({ ...p }));
+  return [...saved, ...extra];
 }
 
 async function writeAll(posts: BlogPost[]) {
@@ -104,9 +140,13 @@ export const getPublishedPost = createServerFn({ method: "GET" })
     const all = await readAll();
     const post = all.find((p) => p.slug === data.slug && p.published);
     if (!post) throw notFound();
+    // Related = articles sharing the most keywords, then the newest.
+    const words = (p: BlogPost) => new Set((p.keywords ?? "").toLowerCase().split(",").map((k) => k.trim()).filter(Boolean));
+    const mine = words(post);
+    const overlap = (p: BlogPost) => [...words(p)].filter((k) => mine.has(k)).length;
     const related = all
       .filter((p) => p.published && p.id !== post.id)
-      .sort(newestFirst)
+      .sort((a, b) => overlap(b) - overlap(a) || newestFirst(a, b))
       .slice(0, 3)
       .map(summary);
     return { post, related, readMinutes: readMinutes(post.content) };
@@ -137,6 +177,16 @@ export const postInputSchema = z.object({
   metaTitle: z.string().trim().max(70, "SEO title must be 70 characters or less.").optional().default(""),
   metaDescription: z.string().trim().max(170, "Meta description must be 170 characters or less.").optional().default(""),
   keywords: z.string().trim().max(300, "Keywords must be 300 characters or less.").optional().default(""),
+  faqs: z
+    .array(
+      z.object({
+        q: z.string().trim().min(5, "Each FAQ question needs at least 5 characters.").max(200, "FAQ questions must be 200 characters or less."),
+        a: z.string().trim().min(5, "Each FAQ answer needs at least 5 characters.").max(1000, "FAQ answers must be 1000 characters or less."),
+      }),
+    )
+    .max(15, "Up to 15 FAQs per article.")
+    .optional()
+    .default([]),
   published: z.boolean(),
 });
 
@@ -168,6 +218,7 @@ export const adminSavePost = createServerFn({ method: "POST" })
         metaTitle: data.metaTitle ?? "",
         metaDescription: data.metaDescription ?? "",
         keywords: data.keywords ?? "",
+        faqs: data.faqs ?? [],
         published: data.published,
       };
       let saved: BlogPost;
@@ -194,6 +245,7 @@ export const adminDeletePost = createServerFn({ method: "POST" })
       const next = all.filter((p) => p.id !== data.id);
       if (next.length === all.length) throw new Error("Post not found.");
       await writeAll(next);
+      await rememberDeletedSeed(data.id);
       return { ok: true };
     });
   });
