@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { adminLogin, adminLogout, getAdminStatus } from "@/lib/admin-auth";
 import { adminDeletePost, adminListPosts, adminSavePost, postInputSchema, slugify, type BlogPost, type PostInput } from "@/lib/blog";
 import { formatDate } from "@/components/article-body";
+import { LAB_REPORT_ACCEPT, LAB_REPORT_MAX_MB, LAB_REPORT_URL, LAB_TEXT_MAX, checkLabReportFile, formatBytes, getLabReport, type LabReportInfo } from "@/lib/lab-report";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -56,11 +57,39 @@ function AdminPage() {
             Admin login is not set up yet. Add an environment variable named <code className="rounded bg-secondary px-1.5 py-0.5">ADMIN_PASSWORD</code> on your server (for example in Render → Environment) and restart the website.
           </Notice>
         ) : loggedIn ? (
-          <BlogManager onSessionExpired={() => setLoggedIn(false)} />
+          <AdminTabs onSessionExpired={() => setLoggedIn(false)} />
         ) : (
           <LoginForm onLoggedIn={() => setLoggedIn(true)} />
         )}
       </main>
+    </div>
+  );
+}
+
+const TABS = [
+  { id: "blog", label: "Blog Posts" },
+  { id: "lab", label: "Lab Report" },
+] as const;
+
+function AdminTabs({ onSessionExpired }: { onSessionExpired: () => void }) {
+  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("blog");
+  return (
+    <div>
+      <div role="tablist" aria-label="Admin sections" className="mb-8 inline-flex rounded-full bg-card p-1 shadow-warm">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            type="button"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === t.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "blog" ? <BlogManager onSessionExpired={onSessionExpired} /> : <LabReportManager onSessionExpired={onSessionExpired} />}
     </div>
   );
 }
@@ -93,7 +122,7 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
       }}
     >
       <h1 className="text-center font-display text-3xl font-bold text-primary">Admin Login</h1>
-      <p className="mt-2 text-center text-muted-foreground">Log in to manage blog posts.</p>
+      <p className="mt-2 text-center text-muted-foreground">Log in to manage blog posts and the lab report.</p>
       <label className="mt-6 block text-sm font-semibold text-primary">
         Password
         <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className={input} />
@@ -317,5 +346,253 @@ function PostEditor({ initial, onCancel, onSaved, onSessionExpired }: { initial:
         <button type="button" onClick={onCancel} className={btnGhost}>Cancel</button>
       </div>
     </form>
+  );
+}
+
+// ---------- Lab report ----------
+
+type UploadResult = { status: number; body: { report?: LabReportInfo; error?: string; ok?: boolean } };
+
+// XMLHttpRequest instead of fetch so the admin sees upload progress.
+function sendLabReport(method: "POST" | "DELETE", body: FormData | null, onProgress?: (pct: number) => void) {
+  return new Promise<UploadResult>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, LAB_REPORT_URL);
+    xhr.withCredentials = true;
+    if (onProgress) xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+    xhr.onload = () => {
+      let parsed: UploadResult["body"] = {};
+      try {
+        parsed = JSON.parse(xhr.responseText || "{}");
+      } catch {
+        parsed = { error: xhr.status === 413 ? `The file is too large. Maximum size is ${LAB_REPORT_MAX_MB} MB.` : "" };
+      }
+      resolve({ status: xhr.status, body: parsed });
+    };
+    xhr.onerror = () => reject(new Error("Network error. Please check your internet connection and try again."));
+    xhr.send(body);
+  });
+}
+
+function LabReportManager({ onSessionExpired }: { onSessionExpired: () => void }) {
+  const [report, setReport] = useState<LabReportInfo | null | undefined>(undefined);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const [labName, setLabName] = useState("");
+  const [testedOn, setTestedOn] = useState("");
+  const [fileError, setFileError] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [inputKey, setInputKey] = useState(0);
+
+  async function load() {
+    try {
+      const r = await getLabReport();
+      setReport(r);
+      setLabName(r?.labName ?? "");
+      setTestedOn(r?.testedOn ?? "");
+    } catch {
+      setReport(null);
+      setError("Could not load the lab report.");
+    }
+  }
+  useEffect(() => {
+    load();
+  }, []);
+
+  // Local preview for a chosen image.
+  useEffect(() => {
+    if (!file || !file.type.startsWith("image/")) {
+      setPreview("");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  function pick(f: File | null) {
+    setNotice("");
+    setError("");
+    if (!f) {
+      setFile(null);
+      setFileError("");
+      return;
+    }
+    const problem = checkLabReportFile(f);
+    setFileError(problem);
+    setFile(problem ? null : f);
+  }
+
+  function clearFile() {
+    setFile(null);
+    setFileError("");
+    setInputKey((k) => k + 1);
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setNotice("");
+    if (fileError) return;
+    if (!file && !report) {
+      setFileError("Please choose a lab report file (PDF, JPG, PNG or WEBP).");
+      return;
+    }
+    const fd = new FormData();
+    if (file) fd.append("file", file);
+    fd.append("labName", labName.trim());
+    fd.append("testedOn", testedOn.trim());
+    setBusy(true);
+    setProgress(0);
+    try {
+      const res = await sendLabReport("POST", fd, file ? setProgress : undefined);
+      if (res.status === 401) return onSessionExpired();
+      if (res.status !== 200 || !res.body.report) {
+        setError(res.body.error || "Could not save the lab report. Please try again.");
+        return;
+      }
+      setReport(res.body.report);
+      setNotice(file ? (report ? "Lab report replaced. The website now shows the new report." : "Lab report uploaded. It is now shown on the Lab Tested page.") : "Lab report details updated.");
+      clearFile();
+    } catch (err) {
+      setError(errMessage(err, "Could not save the lab report. Please try again."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm("Delete the lab report? It will be removed from the website.")) return;
+    setError("");
+    setNotice("");
+    setBusy(true);
+    try {
+      const res = await sendLabReport("DELETE", null);
+      if (res.status === 401) return onSessionExpired();
+      if (res.status !== 200) {
+        setError(res.body.error || "Could not delete the lab report.");
+        return;
+      }
+      setReport(null);
+      setLabName("");
+      setTestedOn("");
+      setNotice("Lab report deleted. The Lab Tested page now asks customers to request it on WhatsApp.");
+    } catch (err) {
+      setError(errMessage(err, "Could not delete the lab report."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const detailsChanged = !!report && (labName.trim() !== report.labName || testedOn.trim() !== report.testedOn);
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl font-bold text-primary">Lab Report</h1>
+          <p className="text-muted-foreground">Upload the lab test report shown on the Lab Tested 100% Pure page.</p>
+        </div>
+        <a href="/lab-tested" target="_blank" rel="noopener noreferrer" className={btnGhost}>View Lab Tested page</a>
+      </div>
+      {notice && <p role="status" className="mt-6 rounded-xl bg-primary/10 px-4 py-3 text-primary">{notice}</p>}
+      {error && <p role="alert" className="mt-6 rounded-xl bg-destructive/10 px-4 py-3 text-destructive">{error}</p>}
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        {/* Current report */}
+        <section className="rounded-2xl bg-card p-6 shadow-warm sm:p-8">
+          <h2 className="font-display text-2xl font-bold text-primary">Current report</h2>
+          {report === undefined ? (
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          ) : report === null ? (
+            <p className="mt-4 rounded-xl bg-secondary px-4 py-6 text-center text-muted-foreground">No lab report uploaded yet. Customers are asked to request it on WhatsApp.</p>
+          ) : (
+            <div className="mt-4">
+              {report.mime.startsWith("image/") ? (
+                <img src={report.url} alt="Current lab report" className="max-h-80 w-full rounded-xl border border-border bg-secondary object-contain" />
+              ) : (
+                <div className="flex items-center gap-4 rounded-xl bg-secondary p-5">
+                  <span className="flex h-14 w-12 shrink-0 items-center justify-center rounded-md bg-destructive/90 text-xs font-bold text-white">PDF</span>
+                  <span className="min-w-0 break-words font-semibold text-primary">{report.fileName}</span>
+                </div>
+              )}
+              <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+                <dt className="text-muted-foreground">File</dt>
+                <dd className="min-w-0 break-words font-medium">{report.fileName} · {formatBytes(report.size)}</dd>
+                <dt className="text-muted-foreground">Lab</dt>
+                <dd className="font-medium">{report.labName || "—"}</dd>
+                <dt className="text-muted-foreground">Tested on</dt>
+                <dd className="font-medium">{report.testedOn || "—"}</dd>
+                <dt className="text-muted-foreground">Uploaded</dt>
+                <dd className="font-medium">{formatDate(report.uploadedAt)}</dd>
+              </dl>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <a href={report.url} target="_blank" rel="noopener noreferrer" className={btnGhost}>View</a>
+                <a href={`${report.url}&download=1`} className={btnGhost}>Download</a>
+                <button type="button" disabled={busy} onClick={remove} className={`${btnGhost} text-destructive`}>Delete</button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Upload / update */}
+        <form onSubmit={save} noValidate className="rounded-2xl bg-card p-6 shadow-warm sm:p-8">
+          <h2 className="font-display text-2xl font-bold text-primary">{report ? "Replace or update" : "Upload report"}</h2>
+          <div className="mt-5 space-y-5">
+            <label className="block text-sm font-semibold text-primary">
+              Report file {report ? <span className="font-normal text-muted-foreground">(choose a new file only to replace it)</span> : "*"}
+              <input
+                key={inputKey}
+                id="lab-report-file"
+                type="file"
+                accept={LAB_REPORT_ACCEPT}
+                onChange={(e) => pick(e.target.files?.[0] ?? null)}
+                className={`${input} cursor-pointer file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:font-semibold file:text-primary-foreground ${fileError ? "border-destructive" : ""}`}
+              />
+              <span className="mt-1 block text-xs font-normal text-muted-foreground">PDF, JPG, PNG or WEBP. Maximum {LAB_REPORT_MAX_MB} MB.</span>
+              {fileError && <span role="alert" className="mt-1 block text-sm font-normal text-destructive">{fileError}</span>}
+            </label>
+            {file && (
+              <div className="flex items-center gap-4 rounded-xl border border-border p-3">
+                {preview ? (
+                  <img src={preview} alt="Selected file preview" className="h-20 w-20 rounded-lg object-cover" />
+                ) : (
+                  <span className="flex h-20 w-16 shrink-0 items-center justify-center rounded-md bg-destructive/90 text-xs font-bold text-white">PDF</span>
+                )}
+                <div className="min-w-0 flex-1 text-sm">
+                  <p className="break-words font-semibold text-primary">{file.name}</p>
+                  <p className="text-muted-foreground">{formatBytes(file.size)}</p>
+                </div>
+                <button type="button" onClick={clearFile} className="text-sm font-semibold text-destructive">Remove</button>
+              </div>
+            )}
+            <label className="block text-sm font-semibold text-primary">
+              Lab name <span className="font-normal text-muted-foreground">(optional)</span>
+              <input id="lab-name" value={labName} onChange={(e) => setLabName(e.target.value)} maxLength={LAB_TEXT_MAX.labName} placeholder="e.g. ABC Food Testing Lab, Chandigarh" className={input} />
+            </label>
+            <label className="block text-sm font-semibold text-primary">
+              Tested on <span className="font-normal text-muted-foreground">(optional)</span>
+              <input id="lab-tested-on" value={testedOn} onChange={(e) => setTestedOn(e.target.value)} maxLength={LAB_TEXT_MAX.testedOn} placeholder="e.g. October 2026" className={input} />
+            </label>
+          </div>
+          {busy && file && (
+            <div className="mt-6" aria-live="polite">
+              <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Uploading... {progress}%</p>
+            </div>
+          )}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <button type="submit" disabled={busy || (!file && !!report && !detailsChanged)} className={btnPrimary}>
+              {busy ? "Saving..." : file ? (report ? "Replace Report" : "Upload Report") : report ? "Save Details" : "Upload Report"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

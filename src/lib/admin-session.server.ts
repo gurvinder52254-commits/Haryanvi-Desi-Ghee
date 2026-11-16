@@ -38,6 +38,22 @@ export function isAdmin() {
   return tokenValid(getCookie(COOKIE));
 }
 
+/** Admin check for server routes that receive the raw Request. */
+export function isAdminRequest(request: Request) {
+  const raw = (request.headers.get("cookie") ?? "")
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${COOKIE}=`))
+    ?.slice(COOKIE.length + 1);
+  let token: string | undefined;
+  try {
+    token = raw ? decodeURIComponent(raw) : undefined;
+  } catch {
+    token = undefined;
+  }
+  return tokenValid(token);
+}
+
 /** Throws unless the current request carries a valid admin session. */
 export function requireAdmin() {
   if (!isAdmin()) throw new Error("Not authorised. Please log in again.");

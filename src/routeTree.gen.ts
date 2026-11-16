@@ -12,10 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as FreeDeliveryRouteImport } from './routes/free-delivery'
+import { Route as LabTestedRouteImport } from './routes/lab-tested'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ApiLabReportRouteImport } from './routes/api.lab-report'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -32,6 +36,16 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FreeDeliveryRoute = FreeDeliveryRouteImport.update({
+  id: '/free-delivery',
+  path: '/free-delivery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabTestedRoute = LabTestedRouteImport.update({
+  id: '/lab-tested',
+  path: '/lab-tested',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
@@ -40,6 +54,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLabReportRoute = ApiLabReportRouteImport.update({
+  id: '/api/lab-report',
+  path: '/api/lab-report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -52,23 +71,36 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsSlugRoute = ProductsSlugRouteImport.update({
+  id: '/products/$slug',
+  path: '/products/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/free-delivery': typeof FreeDeliveryRoute
+  '/lab-tested': typeof LabTestedRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/lab-report': typeof ApiLabReportRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/free-delivery': typeof FreeDeliveryRoute
+  '/lab-tested': typeof LabTestedRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/lab-report': typeof ApiLabReportRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
   '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
@@ -76,9 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/free-delivery': typeof FreeDeliveryRoute
+  '/lab-tested': typeof LabTestedRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/lab-report': typeof ApiLabReportRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
@@ -87,27 +123,39 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/free-delivery'
+    | '/lab-tested'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/api/lab-report'
     | '/blog/$slug'
+    | '/products/$slug'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/admin'
+    | '/free-delivery'
+    | '/lab-tested'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/api/lab-report'
     | '/blog/$slug'
+    | '/products/$slug'
     | '/blog'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
+    | '/free-delivery'
+    | '/lab-tested'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/api/lab-report'
     | '/blog/$slug'
+    | '/products/$slug'
     | '/blog/'
   fileRoutesById: FileRoutesById
 }
@@ -115,9 +163,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
+  FreeDeliveryRoute: typeof FreeDeliveryRoute
+  LabTestedRoute: typeof LabTestedRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiLabReportRoute: typeof ApiLabReportRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  ProductsSlugRoute: typeof ProductsSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
 }
 
@@ -144,6 +196,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/free-delivery': {
+      id: '/free-delivery'
+      path: '/free-delivery'
+      fullPath: '/free-delivery'
+      preLoaderRoute: typeof FreeDeliveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab-tested': {
+      id: '/lab-tested'
+      path: '/lab-tested'
+      fullPath: '/lab-tested'
+      preLoaderRoute: typeof LabTestedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy-policy': {
       id: '/privacy-policy'
       path: '/privacy-policy'
@@ -156,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/lab-report': {
+      id: '/api/lab-report'
+      path: '/api/lab-report'
+      fullPath: '/api/lab-report'
+      preLoaderRoute: typeof ApiLabReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -172,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products/$slug': {
+      id: '/products/$slug'
+      path: '/products/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -179,9 +259,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
+  FreeDeliveryRoute: FreeDeliveryRoute,
+  LabTestedRoute: LabTestedRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiLabReportRoute: ApiLabReportRoute,
   BlogSlugRoute: BlogSlugRoute,
+  ProductsSlugRoute: ProductsSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport

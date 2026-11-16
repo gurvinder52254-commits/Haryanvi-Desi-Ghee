@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Haryanvi Desi Ghee" },
       { property: "og:description", content: "Traditional Haryanvi desi ghee, ordered on WhatsApp." },
       { property: "og:type", content: "website" },
+      // Site name shown by Google and social apps instead of the host name.
+      { property: "og:site_name", content: "Haryanvi Desi Ghee" },
+      { name: "application-name", content: "Haryanvi Desi Ghee" },
+      { name: "apple-mobile-web-app-title", content: "Haryanvi Desi Ghee" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [

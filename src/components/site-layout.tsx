@@ -7,6 +7,8 @@ export const NAV = [
   { href: "/", label: "Home" },
   { href: "/#products", label: "Our Products" },
   { href: "/about", label: "About Us" },
+  { href: "/lab-tested", label: "Lab Tested" },
+  { href: "/free-delivery", label: "Free Delivery" },
   { href: "/blog", label: "Blog" },
   { href: "/#contact", label: "Contact Us" },
 ];
@@ -58,7 +60,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             </span>
           </span>
         </a>
-        <nav className="hidden items-center gap-6 lg:gap-8 md:flex">
+        <nav className="hidden items-center gap-5 xl:flex 2xl:gap-7">
           {NAV.map((n) => (
             <a key={n.href} href={n.href} className={`text-sm font-medium tracking-wide transition-colors hover:text-gold ${solid ? "text-foreground" : "text-primary-foreground"}`}>
               {n.label}
@@ -68,7 +70,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             <WaIcon className="h-4 w-4" /> WhatsApp Order
           </a>
         </nav>
-        <button aria-label="Menu" onClick={() => setOpen(!open)} className={`md:hidden ${solid ? "text-foreground" : "text-primary-foreground"}`}>
+        <button aria-label="Menu" onClick={() => setOpen(!open)} className={`xl:hidden ${solid ? "text-foreground" : "text-primary-foreground"}`}>
           <div className="space-y-1.5">
             <span className={`block h-0.5 w-6 bg-current transition ${open ? "translate-y-2 rotate-45" : ""}`} />
             <span className={`block h-0.5 w-6 bg-current transition ${open ? "opacity-0" : ""}`} />
@@ -76,7 +78,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           </div>
         </button>
       </div>
-      <div className={`overflow-hidden transition-all duration-300 md:hidden ${open ? "max-h-[32rem]" : "max-h-0"}`}>
+      <div className={`overflow-hidden transition-all duration-300 xl:hidden ${open ? "max-h-[32rem]" : "max-h-0"}`}>
         <nav className="flex flex-col gap-1 px-5 pb-5">
           {NAV.map((n) => (
             <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="border-b border-border py-3 font-medium text-foreground">

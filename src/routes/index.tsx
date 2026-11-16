@@ -1,12 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import poster from "@/assets/hero-poster.jpg";
-import jar from "@/assets/ghee-jar.jpg";
 import village from "@/assets/village.jpg";
-import { FIRST_ORDER_DISCOUNT, GHEE_TYPES, PRODUCTS, SITE, discountedPrice, rupees, whatsappLink, type GheeType, type Product } from "@/config/site";
+import { FIRST_ORDER_DISCOUNT, GHEE_TYPES, PRODUCTS, SITE, discountedPrice, gheeType, productPath, rupees, whatsappLink, type GheeType, type Product } from "@/config/site";
 import { BuffaloIcon, CowIcon } from "@/components/ghee-icons";
 import { Footer, Header, WaIcon } from "@/components/site-layout";
+import { TrustStrip } from "@/components/trust-strip";
+import { productImage } from "@/lib/product-media";
 import { addReview, getReviews, reviewInputSchema, type Review } from "@/lib/reviews";
+
+const SITE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE.url}/#website`,
+      name: SITE.brand,
+      alternateName: ["Haryanvi Ghee", "Haryanvi Desi Ghee Mohali"],
+      url: `${SITE.url}/`,
+      inLanguage: "en-IN",
+      publisher: { "@id": `${SITE.url}/#organization` },
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE.url}/#organization`,
+      name: SITE.brand,
+      url: `${SITE.url}/`,
+      logo: `${SITE.url}/apple-touch-icon.png`,
+      email: SITE.email,
+      telephone: SITE.phone,
+      address: { "@type": "PostalAddress", addressLocality: SITE.address, addressCountry: "IN" },
+    },
+  ],
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,6 +44,10 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: `${SITE.url}/` }],
+    // Tells Google the site's name, so search results show "Haryanvi Desi Ghee"
+    // instead of the hosting company's name. "<" is escaped for safety.
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(SITE_SCHEMA).replace(/</g, "\x5cu003c") }],
   }),
   loader: () => getReviews(),
   component: Index,
@@ -41,6 +71,7 @@ function Index() {
     <div className="min-h-screen">
       <Header overHero />
       <Hero />
+      <TrustStrip />
       <Products />
       <About />
       <Why />
@@ -96,12 +127,16 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
   return (
     <div className="reveal group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-warm transition duration-500 hover:-translate-y-2" style={{ transitionDelay: `${i * 80}ms` }}>
       <div className="relative aspect-square overflow-hidden bg-secondary">
-        <img src={p.type === "buffalo" ? poster : jar} alt={`${p.name} ${p.weight}`} loading="lazy" width={1024} height={1024} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
+        <a href={productPath(p)} aria-label={`View ${p.name} ${p.weight} details`}>
+          <img src={productImage(p.type)} alt={`${p.name} ${p.weight}`} loading="lazy" width={1024} height={1024} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
+        </a>
         <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1 text-sm font-bold text-primary-foreground">{p.weight}</span>
         {p.tag && <span className="absolute right-4 top-4 rounded-full bg-gradient-gold px-3 py-1 text-xs font-semibold text-accent-foreground">{p.tag}</span>}
       </div>
       <div className="flex flex-1 flex-col p-6">
-        <h3 className="text-2xl font-bold text-primary">{p.name}</h3>
+        <h3 className="text-2xl font-bold text-primary">
+          <a href={productPath(p)} className="hover:text-earth">{p.name}</a>
+        </h3>
         <p className="text-sm text-muted-foreground">Packing: {p.weight}</p>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
           <p className="font-display text-4xl font-bold text-earth">{rupees(price)}</p>
@@ -135,6 +170,9 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
         </div>
         <a href={whatsappLink(p, qty)} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-5 py-3 font-semibold text-whatsapp-foreground transition hover:brightness-110">
           <WaIcon /> Buy Now
+        </a>
+        <a href={productPath(p)} className="mt-3 text-center text-sm font-semibold text-earth underline-offset-4 hover:underline">
+          View details
         </a>
       </div>
     </div>
@@ -284,6 +322,7 @@ function ReviewForm({ onAdded }: { onAdded: (reviews: Review[]) => void }) {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
+  const [product, setProduct] = useState<GheeType | "">("");
   const [website, setWebsite] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
@@ -294,7 +333,7 @@ function ReviewForm({ onAdded }: { onAdded: (reviews: Review[]) => void }) {
     e.preventDefault();
     setFormError("");
     setSuccess("");
-    const input = { name, city, rating, comment, website };
+    const input = { name, city, rating, comment, product, website };
     const parsed = reviewInputSchema.safeParse(input);
     if (!parsed.success) {
       const next: FieldErrors = {};
@@ -315,6 +354,7 @@ function ReviewForm({ onAdded }: { onAdded: (reviews: Review[]) => void }) {
       setCity("");
       setRating(0);
       setComment("");
+      setProduct("");
       setSuccess("Thank you! Your review has been added.");
     } catch {
       setFormError("Could not save your review right now. Please try again later.");
@@ -383,6 +423,17 @@ function ReviewForm({ onAdded }: { onAdded: (reviews: Review[]) => void }) {
       </fieldset>
 
       <label className="mt-5 block text-sm font-semibold text-primary">
+        Which ghee did you try? <span className="font-normal text-muted-foreground">(optional)</span>
+        <select value={product} onChange={(e) => setProduct(e.target.value as GheeType | "")} className={`${field} border-border`}>
+          <option value="">Not sure / both</option>
+          {GHEE_TYPES.map((t) => (
+            <option key={t.id} value={t.id}>{t.label}</option>
+          ))}
+        </select>
+        <span className="mt-1 block text-xs font-normal text-muted-foreground">Your review will also show on that ghee's product page.</span>
+      </label>
+
+      <label className="mt-5 block text-sm font-semibold text-primary">
         Your Review <span className="text-destructive">*</span>
         <textarea
           value={comment}
@@ -444,6 +495,11 @@ function Reviews() {
               <figcaption className="mt-5 break-words font-semibold text-primary">
                 {r.name}
                 {r.city && <span className="font-normal text-muted-foreground"> · {r.city}</span>}
+                {r.product && (
+                  <a href={`/products/${gheeType(r.product).slug}`} className="mt-1 block text-xs font-semibold uppercase tracking-wider text-earth hover:text-primary">
+                    {gheeType(r.product).label}
+                  </a>
+                )}
               </figcaption>
             </figure>
           ))}

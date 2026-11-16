@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { GheeType } from "@/config/site";
 
 export type Review = {
   id: string;
@@ -8,7 +9,12 @@ export type Review = {
   rating: number;
   comment: string;
   createdAt: string;
+  // Which ghee the review is about ("" or missing = not said). Only tagged reviews
+  // count towards a product's rating on its product page and in Google data.
+  product?: GheeType | "";
 };
+
+export type RatingSummary = { count: number; average: number };
 
 // Shared by the form (client-side checks) and the server (authoritative checks).
 export const reviewInputSchema = z.object({
@@ -28,6 +34,7 @@ export const reviewInputSchema = z.object({
     .trim()
     .min(10, "Review must be at least 10 characters.")
     .max(500, "Review must be 500 characters or less."),
+  product: z.enum(["cow", "buffalo", ""]).optional().default(""),
   // Honeypot: real users never see or fill this field; bots usually do.
   website: z.string().max(0).optional().default(""),
 });
@@ -92,6 +99,21 @@ export const getReviews = createServerFn({ method: "GET" }).handler(async () => 
   }
 });
 
+// Reviews customers wrote about one ghee type, with the average rating from all of them.
+export const getProductReviews = createServerFn({ method: "GET" })
+  .validator((input: unknown) => z.object({ product: z.enum(["cow", "buffalo"]) }).parse(input))
+  .handler(async ({ data }): Promise<{ reviews: Review[]; summary: RatingSummary }> => {
+    try {
+      const mine = (await readAll()).filter((r) => r.product === data.product && r.rating >= 1 && r.rating <= 5);
+      const count = mine.length;
+      const average = count ? Math.round((mine.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10 : 0;
+      return { reviews: latest(mine), summary: { count, average } };
+    } catch (err) {
+      console.error("Failed to read reviews", err);
+      return { reviews: [], summary: { count: 0, average: 0 } };
+    }
+  });
+
 export const addReview = createServerFn({ method: "POST" })
   .validator((input: unknown) => reviewInputSchema.parse(input))
   .handler(async ({ data }) => {
@@ -102,6 +124,7 @@ export const addReview = createServerFn({ method: "POST" })
       rating: data.rating,
       comment: clean(data.comment),
       createdAt: new Date().toISOString(),
+      product: data.product ?? "",
     };
 
     const run = writeQueue.then(async () => {
