@@ -5,6 +5,7 @@ import { PageShell, WaIcon } from "@/components/site-layout";
 import { BoxIcon, DropIcon, FlaskIcon, ShieldCheckIcon } from "@/components/trust-strip";
 import { FIRST_ORDER_DISCOUNT, LAB_REPORT, SITE, whatsappLink, whatsappTextLink } from "@/config/site";
 import { formatBytes, getLabReport, type LabReportInfo } from "@/lib/lab-report";
+import { breadcrumbSchema, jsonLdScript } from "@/lib/seo";
 
 const TITLE = "Lab Tested 100% Pure Desi Ghee | Haryanvi Desi Ghee";
 const DESCRIPTION =
@@ -18,7 +19,10 @@ export const Route = createFileRoute("/lab-tested")({
       { name: "keywords", content: "lab tested desi ghee, pure desi ghee, how to check pure ghee, ghee purity test, adulteration free ghee, FSSAI ghee standards" },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
+      { property: "og:url", content: `${SITE.url}/lab-tested` },
     ],
+    links: [{ rel: "canonical", href: `${SITE.url}/lab-tested` }],
+    scripts: [jsonLdScript({ "@context": "https://schema.org", "@graph": [breadcrumbSchema([{ name: "Lab Tested", path: "/lab-tested" }])] })],
   }),
   loader: () => getLabReport(),
   component: LabTestedPage,

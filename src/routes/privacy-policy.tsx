@@ -2,13 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "@/components/site-layout";
 import { SITE } from "@/config/site";
+import { breadcrumbSchema, jsonLdScript } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy – Haryanvi Desi Ghee" },
       { name: "description", content: "How Haryanvi Desi Ghee collects, uses and protects your personal information, order details and payment information." },
+      { property: "og:url", content: `${SITE.url}/privacy-policy` },
     ],
+    links: [{ rel: "canonical", href: `${SITE.url}/privacy-policy` }],
+    scripts: [jsonLdScript({ "@context": "https://schema.org", "@graph": [breadcrumbSchema([{ name: "Privacy Policy", path: "/privacy-policy" }])] })],
   }),
   component: PrivacyPage,
 });

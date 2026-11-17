@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { PageShell, WaIcon } from "@/components/site-layout";
 import { BoxIcon, ChatIcon, ShieldCheckIcon, TruckIcon } from "@/components/trust-strip";
 import { DELIVERY, FIRST_ORDER_DISCOUNT, SITE, rupees, whatsappLink, whatsappTextLink } from "@/config/site";
+import { breadcrumbSchema, faqPageSchema, jsonLdScript } from "@/lib/seo";
 
 const TITLE = "Free Pan-India Delivery of Desi Ghee | Haryanvi Desi Ghee";
 const DESCRIPTION =
@@ -16,6 +17,14 @@ export const Route = createFileRoute("/free-delivery")({
       { name: "keywords", content: "free delivery desi ghee, desi ghee online delivery india, buy desi ghee online, ghee home delivery, desi ghee delivery time" },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
+      { property: "og:url", content: `${SITE.url}/free-delivery` },
+    ],
+    links: [{ rel: "canonical", href: `${SITE.url}/free-delivery` }],
+    scripts: [
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@graph": [breadcrumbSchema([{ name: "Free Delivery", path: "/free-delivery" }]), faqPageSchema("/free-delivery", FAQ)],
+      }),
     ],
   }),
   component: DeliveryPage,

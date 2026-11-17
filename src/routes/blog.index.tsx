@@ -3,11 +3,12 @@ import { PageShell } from "@/components/site-layout";
 import { PostCard } from "@/components/post-card";
 import { listPublishedPosts } from "@/lib/blog";
 import { SITE } from "@/config/site";
+import { breadcrumbSchema, jsonLdScript } from "@/lib/seo";
 
 export const Route = createFileRoute("/blog/")({
-  head: () => ({
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Desi Ghee Blog: Price 1kg, Benefits & Buying Guide | Haryanvi Desi Ghee" },
+      { title: "Desi Ghee Blog: Price 1kg, Benefits & Buying Guide" },
       { name: "description", content: "Desi ghee guides: price 1kg, cow vs buffalo ghee, bilona & A2 ghee, desi ghee khane ke fayde, how to check pure ghee, tin price, GST and HSN code." },
       { name: "keywords", content: "desi ghee, desi ghee price, desi ghee price 1kg, cow desi ghee, desi cow ghee, buffalo ghee, bilona ghee, a2 ghee, a2 desi ghee, pure desi ghee, shudh desi ghee, desi ghee benefits, desi ghee khane ke fayde, desi ghee in hindi, desi ghee tin price, desi ghee gst rate, desi ghee hsn code, desi ghee online" },
       { property: "og:title", content: "Desi Ghee Blog – Price, Benefits & Buying Guide" },
@@ -16,6 +17,22 @@ export const Route = createFileRoute("/blog/")({
       { property: "og:url", content: `${SITE.url}/blog` },
     ],
     links: [{ rel: "canonical", href: `${SITE.url}/blog` }],
+    scripts: [
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Blog",
+            "@id": `${SITE.url}/blog#blog`,
+            name: "Desi Ghee Blog",
+            url: `${SITE.url}/blog`,
+            publisher: { "@id": `${SITE.url}/#organization` },
+            blogPost: (loaderData ?? []).map((p) => ({ "@type": "BlogPosting", headline: p.title, url: `${SITE.url}/blog/${p.slug}`, datePublished: p.createdAt })),
+          },
+          breadcrumbSchema([{ name: "Blog", path: "/blog" }]),
+        ],
+      }),
+    ],
   }),
   loader: () => listPublishedPosts(),
   component: BlogIndex,

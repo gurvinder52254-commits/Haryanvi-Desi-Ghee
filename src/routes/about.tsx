@@ -3,6 +3,7 @@ import village from "@/assets/village.jpg";
 import jar from "@/assets/ghee-jar.jpg";
 import { PageShell, WaIcon } from "@/components/site-layout";
 import { SITE, whatsappLink } from "@/config/site";
+import { breadcrumbSchema, jsonLdScript } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -11,7 +12,10 @@ export const Route = createFileRoute("/about")({
       { name: "description", content: "The story of Haryanvi Desi Ghee: village-style desi ghee made the traditional Haryana way, with care for quality in every jar." },
       { property: "og:title", content: "About Us – Haryanvi Desi Ghee" },
       { property: "og:description", content: "Village-style desi ghee made the traditional Haryana way." },
+      { property: "og:url", content: `${SITE.url}/about` },
     ],
+    links: [{ rel: "canonical", href: `${SITE.url}/about` }],
+    scripts: [jsonLdScript({ "@context": "https://schema.org", "@graph": [{ "@type": "AboutPage", "@id": `${SITE.url}/about#page`, url: `${SITE.url}/about`, name: "About Haryanvi Desi Ghee", about: { "@id": `${SITE.url}/#organization` } }, breadcrumbSchema([{ name: "About Us", path: "/about" }])] })],
   }),
   component: AboutPage,
 });

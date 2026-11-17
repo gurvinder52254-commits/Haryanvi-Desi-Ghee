@@ -14,7 +14,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as FreeDeliveryRouteImport } from './routes/free-delivery'
 import { Route as LabTestedRouteImport } from './routes/lab-tested'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiLabReportRouteImport } from './routes/api.lab-report'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -46,9 +48,19 @@ const LabTestedRoute = LabTestedRouteImport.update({
   path: '/lab-tested',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -83,7 +95,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/free-delivery': typeof FreeDeliveryRoute
   '/lab-tested': typeof LabTestedRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/lab-report': typeof ApiLabReportRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -96,7 +110,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/free-delivery': typeof FreeDeliveryRoute
   '/lab-tested': typeof LabTestedRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/lab-report': typeof ApiLabReportRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -110,7 +126,9 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/free-delivery': typeof FreeDeliveryRoute
   '/lab-tested': typeof LabTestedRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/lab-report': typeof ApiLabReportRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -125,7 +143,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/free-delivery'
     | '/lab-tested'
+    | '/llms.txt'
     | '/privacy-policy'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/api/lab-report'
     | '/blog/$slug'
@@ -138,7 +158,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/free-delivery'
     | '/lab-tested'
+    | '/llms.txt'
     | '/privacy-policy'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/api/lab-report'
     | '/blog/$slug'
@@ -151,7 +173,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/free-delivery'
     | '/lab-tested'
+    | '/llms.txt'
     | '/privacy-policy'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/api/lab-report'
     | '/blog/$slug'
@@ -165,7 +189,9 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   FreeDeliveryRoute: typeof FreeDeliveryRoute
   LabTestedRoute: typeof LabTestedRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiLabReportRoute: typeof ApiLabReportRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -210,11 +236,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LabTestedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy-policy': {
       id: '/privacy-policy'
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -261,7 +301,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   FreeDeliveryRoute: FreeDeliveryRoute,
   LabTestedRoute: LabTestedRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiLabReportRoute: ApiLabReportRoute,
   BlogSlugRoute: BlogSlugRoute,

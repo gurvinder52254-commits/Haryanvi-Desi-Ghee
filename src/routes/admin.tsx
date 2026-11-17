@@ -4,6 +4,8 @@ import { adminLogin, adminLogout, getAdminStatus } from "@/lib/admin-auth";
 import { adminDeletePost, adminListPosts, adminSavePost, postInputSchema, slugify, type BlogPost, type PostInput } from "@/lib/blog";
 import { formatDate } from "@/components/article-body";
 import { LAB_REPORT_ACCEPT, LAB_REPORT_MAX_MB, LAB_REPORT_URL, LAB_TEXT_MAX, checkLabReportFile, formatBytes, getLabReport, type LabReportInfo } from "@/lib/lab-report";
+import { adminSeoAudit, type SeoAuditResult } from "@/lib/seo-audit";
+import { SITE } from "@/config/site";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -69,6 +71,7 @@ function AdminPage() {
 const TABS = [
   { id: "blog", label: "Blog Posts" },
   { id: "lab", label: "Lab Report" },
+  { id: "seo", label: "SEO Check" },
 ] as const;
 
 function AdminTabs({ onSessionExpired }: { onSessionExpired: () => void }) {
@@ -83,13 +86,15 @@ function AdminTabs({ onSessionExpired }: { onSessionExpired: () => void }) {
             type="button"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === t.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"}`}
+            className={`rounded-full px-4 py-2.5 text-sm font-semibold transition sm:px-5 ${tab === t.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"}`}
           >
             {t.label}
           </button>
         ))}
       </div>
-      {tab === "blog" ? <BlogManager onSessionExpired={onSessionExpired} /> : <LabReportManager onSessionExpired={onSessionExpired} />}
+      {tab === "blog" && <BlogManager onSessionExpired={onSessionExpired} />}
+      {tab === "lab" && <LabReportManager onSessionExpired={onSessionExpired} />}
+      {tab === "seo" && <SeoChecker onSessionExpired={onSessionExpired} />}
     </div>
   );
 }
@@ -624,6 +629,183 @@ function LabReportManager({ onSessionExpired }: { onSessionExpired: () => void }
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+// ---------- SEO Check ----------
+
+const enc = encodeURIComponent;
+const GSC_PROPERTY = `${SITE.url}/`;
+
+// Free Google/Bing tools, opened for one page.
+function pageTools(url: string) {
+  return [
+    { label: "Indexed? (Search Console)", href: `https://search.google.com/search-console/inspect?resource_id=${enc(GSC_PROPERTY)}&id=${enc(url)}` },
+    { label: "Rich Results Test", href: `https://search.google.com/test/rich-results?url=${enc(url)}` },
+    { label: "PageSpeed", href: `https://pagespeed.web.dev/analysis?url=${enc(url)}` },
+  ];
+}
+
+const SITE_TOOLS = [
+  { label: "Rankings & clicks", note: "Search Console → Performance: keywords, position, clicks", href: `https://search.google.com/search-console/performance/search-analytics?resource_id=${enc(GSC_PROPERTY)}` },
+  { label: "Indexed pages", note: "Search Console → Pages: which pages Google has indexed and why others are not", href: `https://search.google.com/search-console/index?resource_id=${enc(GSC_PROPERTY)}` },
+  { label: "Sitemaps", note: "Submit sitemap.xml once, then check its status", href: `https://search.google.com/search-console/sitemaps?resource_id=${enc(GSC_PROPERTY)}` },
+  { label: "Pages on Google now", note: "A quick Google search of site: your address", href: `https://www.google.com/search?q=${enc(`site:${new URL(SITE.url).host}`)}` },
+  { label: "Bing Webmaster Tools", note: "Bing also powers ChatGPT search. Import from Search Console in one click", href: "https://www.bing.com/webmasters" },
+  { label: "Core Web Vitals", note: "Speed score for mobile and desktop", href: `https://pagespeed.web.dev/analysis?url=${enc(`${SITE.url}/`)}` },
+];
+
+const SEO_GROUPS = [
+  { id: "SEO", about: "Google & Bing search results" },
+  { id: "AEO", about: "Answer boxes, People also ask, voice search" },
+  { id: "GEO", about: "ChatGPT, Perplexity, Claude, Gemini, AI Overviews" },
+] as const;
+
+function SeoChecker({ onSessionExpired }: { onSessionExpired: () => void }) {
+  const [result, setResult] = useState<SeoAuditResult | null>(null);
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState("");
+  const [showOk, setShowOk] = useState(false);
+
+  async function run() {
+    setRunning(true);
+    setError("");
+    try {
+      setResult(await adminSeoAudit());
+    } catch (err) {
+      const msg = errMessage(err, "The SEO check could not run. Please try again.");
+      if (msg.startsWith("Not authorised")) onSessionExpired();
+      else setError(msg);
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  const pages = result?.pages ?? [];
+  const errors = pages.reduce((n, p) => n + p.issues.filter((i) => i.level === "error").length, 0);
+  const warns = pages.reduce((n, p) => n + p.issues.filter((i) => i.level === "warn").length, 0);
+  const clean = pages.filter((p) => p.issues.length === 0).length;
+  const shown = showOk ? pages : pages.filter((p) => p.issues.length > 0);
+  const path = (u: string) => {
+    try {
+      return new URL(u).pathname;
+    } catch {
+      return u;
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl font-bold text-primary">SEO · AEO · GEO Check</h1>
+          <p className="mt-1 text-muted-foreground">Checks every page in your sitemap for Google search (SEO), answer boxes (AEO) and AI assistants (GEO).</p>
+        </div>
+        <button type="button" onClick={run} disabled={running} className={btnPrimary}>
+          {running ? "Checking pages…" : result ? "Run again" : "Run SEO check"}
+        </button>
+      </div>
+
+      {error && <p role="alert" className="mt-6 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</p>}
+
+      <section className="mt-8 rounded-2xl bg-card p-6 shadow-warm">
+        <h2 className="text-xl font-bold text-primary">Rankings, indexing and traffic</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Only Google knows your real positions. These open your free Google and Bing tools (sign in with the account that verified the site).
+        </p>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SITE_TOOLS.map((t) => (
+            <li key={t.label}>
+              <a href={t.href} target="_blank" rel="noopener noreferrer" className="block h-full rounded-xl border border-border bg-background p-4 transition hover:border-gold">
+                <span className="font-semibold text-primary">{t.label} ↗</span>
+                <span className="mt-1 block text-sm text-muted-foreground">{t.note}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {result && (
+        <>
+          <section className="mt-6 grid gap-4 lg:grid-cols-3">
+            {SEO_GROUPS.map((g) => {
+              const checks = result.site.filter((s) => s.group === g.id);
+              const passed = checks.filter((s) => s.ok).length;
+              return (
+                <div key={g.id} className="rounded-2xl bg-card p-5 shadow-warm">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h2 className="text-xl font-bold text-primary">{g.id}</h2>
+                    <span className={`text-sm font-bold ${passed === checks.length ? "text-whatsapp" : "text-earth"}`}>
+                      {passed}/{checks.length} passed
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{g.about}</p>
+                  <ul className="mt-3 space-y-2.5">
+                    {checks.map((s) => (
+                      <li key={s.label}>
+                        <p className={`text-sm font-bold ${s.ok ? "text-whatsapp" : "text-destructive"}`}>{s.ok ? "✓" : "✗"} {s.label}</p>
+                        <p className="text-xs text-muted-foreground">{s.detail}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </section>
+
+          <section className="mt-6 rounded-2xl bg-card p-6 shadow-warm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-bold text-primary">
+                {pages.length} pages checked · <span className="text-whatsapp">{clean} all good</span>
+                {errors > 0 && <span className="text-destructive"> · {errors} errors</span>}
+                {warns > 0 && <span className="text-earth"> · {warns} suggestions</span>}
+              </h2>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={showOk} onChange={(e) => setShowOk(e.target.checked)} /> Show pages with no issues
+              </label>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Checked {new Date(result.checkedAt).toLocaleString("en-IN")} on {result.origin}</p>
+
+            {shown.length === 0 ? (
+              <p className="mt-6 rounded-xl bg-whatsapp/10 px-4 py-3 text-sm">Every page passed. Tick the box above to see them all.</p>
+            ) : (
+              <ul className="mt-6 space-y-4">
+                {shown.map((p) => (
+                  <li key={p.url} className="rounded-xl border border-border bg-background p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="break-all font-semibold text-primary hover:underline">{path(p.url)}</a>
+                      <span className="text-xs text-muted-foreground">
+                        {p.status} · {(p.ms / 1000).toFixed(1)} s · {p.words} words{p.faqs > 0 ? ` · ${p.faqs} FAQs` : ""}
+                      </span>
+                    </div>
+                    <p className="mt-1 break-words text-sm text-foreground/85">{p.title || "(no title)"}</p>
+                    {p.schema.length > 0 && <p className="mt-1 text-xs text-muted-foreground">Structured data: {p.schema.join(", ")}</p>}
+                    {p.issues.length > 0 ? (
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {p.issues.map((i) => (
+                          <li key={i.text} className={i.level === "error" ? "text-destructive" : "text-earth"}>
+                            {i.level === "error" ? "✗" : "⚠"} {i.text}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-sm text-whatsapp">✓ No issues found</p>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {pageTools(p.url).map((t) => (
+                        <a key={t.label} href={t.href} target="_blank" rel="noopener noreferrer" className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-primary hover:border-gold">
+                          {t.label} ↗
+                        </a>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

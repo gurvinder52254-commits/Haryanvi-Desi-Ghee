@@ -19,6 +19,12 @@ import {
 import { getProductReviews } from "@/lib/reviews";
 import { absoluteUrl, productImage } from "@/lib/product-media";
 import { productPageUrl, productSchema, productsOf } from "@/lib/product-schema";
+import { productFaqs } from "@/lib/product-faqs";
+import { faqPageSchema, jsonLdScript, type Faq } from "@/lib/seo";
+
+function withFaqs(schema: ReturnType<typeof productSchema>, path: string, faqs: Faq[]) {
+  return faqs.length ? { ...schema, "@graph": [...schema["@graph"], faqPageSchema(path, faqs)] } : schema;
+}
 
 export const Route = createFileRoute("/products/$slug")({
   validateSearch: (search: Record<string, unknown>): { size?: string } =>
@@ -35,8 +41,9 @@ export const Route = createFileRoute("/products/$slug")({
     const products = productsOf(type);
     const prices = products.map((p) => p.mrp);
     const oneKg = products.find((p) => sizeKey(p) === "1kg") ?? products[0];
-    const title = `Haryanvi ${type.label} – Buy Online${oneKg ? `, ${oneKg.weight} ${rupees(oneKg.mrp)}` : ""} | ${SITE.brand}`;
-    const description = `${type.description.split(". ")[0]}. Packs from ${rupees(Math.min(...prices))}. Free delivery, order on WhatsApp.`;
+    // Kept under ~60 / ~160 characters so Google shows them in full.
+    const title = `Haryanvi ${type.label}${oneKg ? ` ${oneKg.weight} ${rupees(oneKg.mrp)}` : ""} – Buy Online`;
+    const description = `Pure Haryanvi ${type.label.toLowerCase()}, slow-cooked from curd-churned makkhan. ${products.map((p) => p.weight).join(", ")} packs from ${rupees(Math.min(...prices))}. Free delivery, order on WhatsApp.`;
     const url = productPageUrl(type);
     const image = absoluteUrl(productImage(type.id));
     return {
@@ -56,8 +63,8 @@ export const Route = createFileRoute("/products/$slug")({
         { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: url }],
-      // One JSON-LD block per page: ProductGroup (all sizes) + BreadcrumbList. "<" is escaped.
-      scripts: [{ type: "application/ld+json", children: JSON.stringify(productSchema(type, loaderData.reviews, loaderData.summary)).replace(/</g, "\x5cu003c") }],
+      // One JSON-LD block per page: ProductGroup (all sizes) + BreadcrumbList + FAQPage.
+      scripts: [jsonLdScript(withFaqs(productSchema(type, loaderData.reviews, loaderData.summary), `/products/${type.slug}`, productFaqs(type)))],
     };
   },
   component: ProductPage,
@@ -91,6 +98,7 @@ function ProductPage() {
   const other = GHEE_TYPES.find((t) => t.id !== type.id);
   const Icon = TYPE_ICON[type.id];
   const OtherIcon = other ? TYPE_ICON[other.id] : null;
+  const faqs = productFaqs(type);
 
   const choose = (key: string) => {
     setQty(1);
@@ -260,8 +268,27 @@ function ProductPage() {
           </div>
         </section>
 
+        {/* Quick answers (same questions as the FAQPage data) */}
+        <section id="faq" className="scroll-mt-28 px-5 py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-earth">FAQ</p>
+            <h2 className="mt-2 text-3xl font-bold text-primary sm:text-4xl">Questions about our {type.label.toLowerCase()}</h2>
+            <div className="mt-8 space-y-3">
+              {faqs.map((f) => (
+                <details key={f.q} className="group rounded-2xl border border-border bg-card p-5">
+                  <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-primary">
+                    <h3 className="text-lg font-semibold">{f.q}</h3>
+                    <span className="text-2xl leading-none text-gold transition group-open:rotate-45" aria-hidden>+</span>
+                  </summary>
+                  <p className="mt-3 leading-relaxed text-foreground/85">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {other && OtherIcon && (
-          <section className="px-5 py-14">
+          <section className="px-5 pb-14">
             <a href={`/products/${other.slug}`} className="mx-auto flex max-w-3xl items-center gap-5 rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-0.5 hover:shadow-warm">
               <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-secondary text-earth">
                 <OtherIcon className="h-9 w-9" />

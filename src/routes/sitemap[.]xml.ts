@@ -1,19 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { listPublishedPosts } from "@/lib/blog";
 import { GHEE_TYPES } from "@/config/site";
+import { siteOrigin } from "@/lib/site-origin";
 
 // /sitemap.xml – lists every public page and published blog post for Google.
-// The site address comes from SITE_URL (e.g. https://www.example.com) when set,
-// otherwise from the incoming request.
-
-function siteOrigin(request: Request) {
-  const fromEnv = process.env["SITE_URL"]?.trim().replace(/\/+$/, "");
-  if (fromEnv) return fromEnv;
-  const url = new URL(request.url);
-  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || url.protocol.replace(":", "");
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
-  return `${proto}://${host}`;
-}
 
 const xmlEscape = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
