@@ -100,11 +100,11 @@ export function productPath(p: Product) {
 export const FIRST_ORDER_DISCOUNT = 20;
 
 export const PRODUCTS: Product[] = [
-  // Cow desi ghee: 1 KG MRP ₹2,500, first order ₹2,000
+  // Cow desi ghee: 1 KG first-order price ₹1,799 (MRP ₹2,249), 5 KG ₹8,500 (MRP ₹10,625)
   { id: "250g", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "250 GM", mrp: 625 },
   { id: "500g", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "500 GM", mrp: 1250 },
-  { id: "1kg", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "1 KG", mrp: 2500, tag: "Bestseller" },
-  { id: "5kg", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "5 KG", mrp: 12500, tag: "Family Pack" },
+  { id: "1kg", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "1 KG", mrp: 2249, tag: "Bestseller" },
+  { id: "5kg", type: "cow", name: "Haryanvi Cow Desi Ghee", weight: "5 KG", mrp: 10625, tag: "Family Pack" },
   // Buffalo desi ghee: 1 KG MRP ₹1,875, first order ₹1,500
   { id: "buffalo-250g", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "250 GM", mrp: 469 },
   { id: "buffalo-500g", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "500 GM", mrp: 938 },
