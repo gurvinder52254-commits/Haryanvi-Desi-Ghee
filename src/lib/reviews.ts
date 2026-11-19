@@ -34,7 +34,7 @@ export const reviewInputSchema = z.object({
     .trim()
     .min(10, "Review must be at least 10 characters.")
     .max(500, "Review must be 500 characters or less."),
-  product: z.enum(["cow", "buffalo", ""]).optional().default(""),
+  product: z.enum(["cow", "buffalo", "oil", ""]).optional().default(""),
   // Honeypot: real users never see or fill this field; bots usually do.
   website: z.string().max(0).optional().default(""),
 });
@@ -101,7 +101,7 @@ export const getReviews = createServerFn({ method: "GET" }).handler(async () => 
 
 // Reviews customers wrote about one ghee type, with the average rating from all of them.
 export const getProductReviews = createServerFn({ method: "GET" })
-  .validator((input: unknown) => z.object({ product: z.enum(["cow", "buffalo"]) }).parse(input))
+  .validator((input: unknown) => z.object({ product: z.enum(["cow", "buffalo", "oil"]) }).parse(input))
   .handler(async ({ data }): Promise<{ reviews: Review[]; summary: RatingSummary }> => {
     try {
       const mine = (await readAll()).filter((r) => r.product === data.product && r.rating >= 1 && r.rating <= 5);

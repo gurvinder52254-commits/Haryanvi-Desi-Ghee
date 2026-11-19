@@ -36,7 +36,8 @@ export const DELIVERY = {
 
 // mrp = original price (shown with a strikethrough). The selling price is calculated
 // automatically from mrp and FIRST_ORDER_DISCOUNT, so to change a price, change mrp only.
-export type GheeType = "cow" | "buffalo";
+// Product type. (Named GheeType for history; it also covers cooking oil.)
+export type GheeType = "cow" | "buffalo" | "oil";
 // inStock: set to false when a pack is sold out (shown on the website and sent to Google).
 export type Product = { id: string; type: GheeType; name: string; weight: string; mrp: number; tag?: string; inStock?: boolean };
 
@@ -49,6 +50,8 @@ export type GheeTypeInfo = {
   // Shown on the product page and sent to Google. Keep each one unique.
   description: string;
   highlights: string[];
+  // "ghee" (default) or "oil". Decides the wording of FAQs and page text.
+  kind?: "ghee" | "oil";
 };
 
 export const GHEE_TYPES: GheeTypeInfo[] = [
@@ -69,6 +72,16 @@ export const GHEE_TYPES: GheeTypeInfo[] = [
     description:
       "Haryanvi Buffalo Desi Ghee is slow-cooked from churned buffalo milk makkhan, giving a creamy white-to-pale-golden ghee with a thick, grainy texture and full, rich taste. Perfect for parathas, halwa, laddoo and everyday Haryanvi cooking.",
     highlights: ["Made from buffalo milk curd, churned into makkhan", "Thick, grainy texture with a rich, creamy taste", "No vanaspati, colour, essence or preservatives", "Available in 250 GM, 500 GM, 1 KG and 5 KG packs"],
+  },
+  {
+    id: "oil",
+    kind: "oil",
+    label: "Cooking Oil",
+    hindi: "खाने का तेल",
+    slug: "cooking-oil",
+    description:
+      "Haryanvi Cooking Oil is an everyday oil for Indian kitchens, good for sabzi, dal tadka, pakode and puri. Sold in handy 1 and 2 liter packs for daily home cooking, and a 5 liter family pack for big families.",
+    highlights: ["Everyday oil for frying, tadka and sabzi", "Sealed packs in 1, 2 and 5 liter", "5 liter family pack for big families", "Free delivery, easy WhatsApp ordering"],
   },
 ];
 
@@ -110,6 +123,12 @@ export const PRODUCTS: Product[] = [
   { id: "buffalo-500g", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "500 GM", mrp: 938 },
   { id: "buffalo-1kg", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "1 KG", mrp: 1875, tag: "Bestseller" },
   { id: "buffalo-5kg", type: "buffalo", name: "Haryanvi Buffalo Desi Ghee", weight: "5 KG", mrp: 9375, tag: "Family Pack" },
+
+  // Cooking oil: 1 Liter first-order price ₹190 (MRP ₹238). Bigger packs are priced
+  // at the same rate per liter for now – change each mrp to its own price.
+  { id: "oil-1l", type: "oil", name: "Haryanvi Cooking Oil", weight: "1 Liter", mrp: 238 },
+  { id: "oil-2l", type: "oil", name: "Haryanvi Cooking Oil", weight: "2 Liter", mrp: 475 },
+  { id: "oil-5l", type: "oil", name: "Haryanvi Cooking Oil", weight: "5 Liter", mrp: 1188, tag: "Family Pack" },
 ];
 
 // Price after the first-order discount, rounded to whole rupees.

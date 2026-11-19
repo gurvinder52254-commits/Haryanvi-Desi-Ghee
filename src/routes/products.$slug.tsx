@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { Footer, Header, WaIcon } from "@/components/site-layout";
 import { ShieldCheckIcon, TruckIcon } from "@/components/trust-strip";
-import { BuffaloIcon, CowIcon } from "@/components/ghee-icons";
+import { BuffaloIcon, CowIcon, OilIcon } from "@/components/ghee-icons";
 import {
   DELIVERY,
   FIRST_ORDER_DISCOUNT,
@@ -43,14 +43,18 @@ export const Route = createFileRoute("/products/$slug")({
     const oneKg = products.find((p) => sizeKey(p) === "1kg") ?? products[0];
     // Kept under ~60 / ~160 characters so Google shows them in full.
     const title = `Haryanvi ${type.label}${oneKg ? ` ${oneKg.weight} ${rupees(oneKg.mrp)}` : ""} – Buy Online`;
-    const description = `Pure Haryanvi ${type.label.toLowerCase()}, slow-cooked from curd-churned makkhan. ${products.map((p) => p.weight).join(", ")} packs from ${rupees(Math.min(...prices))}. Free delivery, order on WhatsApp.`;
+    const sizes = `${products.map((p) => p.weight).join(", ")} packs from ${rupees(Math.min(...prices))}. Free delivery, order on WhatsApp.`;
+    const description =
+      type.kind === "oil"
+        ? `Haryanvi ${type.label.toLowerCase()} for everyday Indian cooking. ${sizes}`
+        : `Pure Haryanvi ${type.label.toLowerCase()}, slow-cooked from curd-churned makkhan. ${sizes}`;
     const url = productPageUrl(type);
     const image = absoluteUrl(productImage(type.id));
     return {
       meta: [
         { title },
         { name: "description", content: description },
-        { name: "keywords", content: `${type.label.toLowerCase()}, haryanvi ${type.label.toLowerCase()}, ${type.label.toLowerCase()} price 1kg, buy ${type.label.toLowerCase()} online, pure desi ghee` },
+        { name: "keywords", content: type.kind === "oil" ? "cooking oil, cooking oil price 1 liter, cooking oil 5 liter price, cooking oil 2 liter, buy cooking oil online, cooking oil mohali" : `${type.label.toLowerCase()}, haryanvi ${type.label.toLowerCase()}, ${type.label.toLowerCase()} price 1kg, buy ${type.label.toLowerCase()} online, pure desi ghee` },
         { property: "og:type", content: "product" },
         { property: "og:title", content: `Haryanvi ${type.label} | ${SITE.brand}` },
         { property: "og:description", content: description },
@@ -71,7 +75,7 @@ export const Route = createFileRoute("/products/$slug")({
   notFoundComponent: ProductNotFound,
 });
 
-const TYPE_ICON: Record<GheeType, typeof CowIcon> = { cow: CowIcon, buffalo: BuffaloIcon };
+const TYPE_ICON: Record<GheeType, typeof CowIcon> = { cow: CowIcon, buffalo: BuffaloIcon, oil: OilIcon };
 
 function Stars({ value, className = "" }: { value: number; className?: string }) {
   const full = Math.round(value);
@@ -99,6 +103,7 @@ function ProductPage() {
   const Icon = TYPE_ICON[type.id];
   const OtherIcon = other ? TYPE_ICON[other.id] : null;
   const faqs = productFaqs(type);
+  const noun = type.kind === "oil" ? "oil" : "ghee";
 
   const choose = (key: string) => {
     setQty(1);
@@ -123,7 +128,7 @@ function ProductPage() {
         <section className="px-5 pb-16 pt-6 sm:pb-24">
           <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="relative overflow-hidden rounded-2xl bg-secondary shadow-warm lg:sticky lg:top-28 lg:self-start">
-              <img src={productImage(type.id)} alt={`Haryanvi ${type.label} ${selected.weight} jar`} width={1024} height={1024} className="aspect-square w-full object-cover" />
+              <img key={selected.id} src={productImage(type.id, selected.id)} alt={`Haryanvi ${type.label} ${selected.weight} ${type.kind === "oil" ? "pack" : "jar"}`} width={1024} height={1024} className="aspect-square w-full object-cover" />
               <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1 text-sm font-bold text-primary-foreground">{selected.weight}</span>
               {selected.tag && <span className="absolute right-4 top-4 rounded-full bg-gradient-gold px-3 py-1 text-xs font-semibold text-accent-foreground">{selected.tag}</span>}
             </div>
@@ -141,7 +146,7 @@ function ProductPage() {
                   <span className="text-muted-foreground underline-offset-4 hover:underline">({summary.count} review{summary.count > 1 ? "s" : ""})</span>
                 </a>
               ) : (
-                <p className="mt-3 text-sm text-muted-foreground">No reviews yet for this ghee.</p>
+                <p className="mt-3 text-sm text-muted-foreground">No reviews yet for this {noun}.</p>
               )}
 
               <p className="mt-5 text-lg leading-relaxed text-foreground/85">{type.description}</p>
@@ -200,11 +205,14 @@ function ProductPage() {
               </div>
 
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                <li>
-                  <a href="/lab-tested" className="flex items-center gap-3 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary hover:bg-card">
-                    <ShieldCheckIcon className="h-5 w-5 text-earth" /> Lab Tested 100% Pure
-                  </a>
-                </li>
+                {/* The lab report and purity page are about our ghee, so not shown for oil. */}
+                {type.kind !== "oil" && (
+                  <li>
+                    <a href="/lab-tested" className="flex items-center gap-3 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary hover:bg-card">
+                      <ShieldCheckIcon className="h-5 w-5 text-earth" /> Lab Tested 100% Pure
+                    </a>
+                  </li>
+                )}
                 <li>
                   <a href="/free-delivery" className="flex items-center gap-3 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary hover:bg-card">
                     <TruckIcon className="h-5 w-5 text-earth" /> Free delivery · {DELIVERY.zones[0]?.days}
@@ -247,7 +255,7 @@ function ProductPage() {
               </a>
             </div>
             {reviews.length === 0 ? (
-              <p className="mt-8 rounded-2xl bg-card p-8 text-center text-muted-foreground shadow-warm">No reviews for this ghee yet. Tried it? Be the first to review it.</p>
+              <p className="mt-8 rounded-2xl bg-card p-8 text-center text-muted-foreground shadow-warm">No reviews for this {noun} yet. Tried it? Be the first to review it.</p>
             ) : (
               <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {reviews.map((r) => (

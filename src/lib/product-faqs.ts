@@ -1,4 +1,4 @@
-import { DELIVERY, FIRST_ORDER_DISCOUNT, GHEE_TYPES, discountedPrice, rupees, sizeKey, type GheeTypeInfo } from "@/config/site";
+import { DELIVERY, FIRST_ORDER_DISCOUNT, GHEE_TYPES, discountedPrice, rupees, type GheeTypeInfo, type Product } from "@/config/site";
 import { productsOf } from "@/lib/product-schema";
 import type { Faq } from "@/lib/seo";
 
@@ -6,18 +6,18 @@ import type { Faq } from "@/lib/seo";
 // FAQPage data. Prices and delivery times come from site config, so they stay correct.
 export function productFaqs(type: GheeTypeInfo): Faq[] {
   const products = productsOf(type);
-  const oneKg = products.find((p) => sizeKey(p) === "1kg") ?? products[0];
+  const isOil = type.kind === "oil";
+  const first = products.find((p) => /^1\s?(kg|liter)$/i.test(p.weight)) ?? products[0];
   const zone = DELIVERY.zones[0];
-  const other = GHEE_TYPES.find((t) => t.id !== type.id);
   const name = `Haryanvi ${type.label}`;
+  const offerText = (p: Product) => (FIRST_ORDER_DISCOUNT > 0 ? ` On your first order you pay ${rupees(discountedPrice(p))} (${FIRST_ORDER_DISCOUNT}% OFF).` : "");
   const faqs: Faq[] = [];
 
-  if (oneKg) {
-    const offer = FIRST_ORDER_DISCOUNT > 0 ? ` On your first order you pay ${rupees(discountedPrice(oneKg))} (${FIRST_ORDER_DISCOUNT}% OFF).` : "";
-    const rest = products.filter((p) => p.id !== oneKg.id).map((p) => `${p.weight} ${rupees(p.mrp)}`).join(", ");
+  if (first) {
+    const rest = products.filter((p) => p.id !== first.id).map((p) => `${p.weight} ${rupees(p.mrp)}`).join(", ");
     faqs.push({
-      q: `What is the price of ${name} 1 KG?`,
-      a: `${name} ${oneKg.weight} costs ${rupees(oneKg.mrp)} with free delivery.${offer}${rest ? ` Other packs: ${rest}.` : ""}`,
+      q: `What is the price of ${name} ${first.weight}?`,
+      a: `${name} ${first.weight} costs ${rupees(first.mrp)} with free delivery.${offerText(first)}${rest ? ` Other packs: ${rest}.` : ""}`,
     });
   }
   faqs.push(
@@ -31,11 +31,22 @@ export function productFaqs(type: GheeTypeInfo): Faq[] {
         ? `We deliver free to ${zone.label}. Orders are dispatched within ${DELIVERY.dispatch} and usually arrive in ${zone.days}. For other areas, message us on WhatsApp.`
         : `Orders are dispatched within ${DELIVERY.dispatch}. Message us on WhatsApp to confirm delivery to your area.`,
     },
-    {
-      q: `Is ${name} pure?`,
-      a: `Yes. It is made only from curd-churned ${type.id} milk makkhan, slow-cooked on a low flame. No vanaspati, palm oil, colour, essence or preservatives are added. See our Lab Tested page for the purity checks.`,
-    },
   );
+
+  if (isOil) {
+    faqs.push({
+      q: `Which pack sizes of ${type.label.toLowerCase()} are available?`,
+      a: `${products.map((p) => p.weight).join(", ")}. The 1 and 2 liter packs suit daily home cooking, while the 5 liter family pack is good value for big families.`,
+    });
+    return faqs;
+  }
+
+  faqs.push({
+    q: `Is ${name} pure?`,
+    a: `Yes. It is made only from curd-churned ${type.id} milk makkhan, slow-cooked on a low flame. No vanaspati, palm oil, colour, essence or preservatives are added. See our Lab Tested page for the purity checks.`,
+  });
+  // Compare with the other ghee (not the cooking oil).
+  const other = GHEE_TYPES.find((t) => t.id !== type.id && t.kind !== "oil");
   if (other) {
     faqs.push({
       q: `What is the difference between ${type.label.toLowerCase()} and ${other.label.toLowerCase()}?`,

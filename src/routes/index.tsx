@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import poster from "@/assets/hero-poster.jpg";
 import village from "@/assets/village.jpg";
 import { FIRST_ORDER_DISCOUNT, GHEE_TYPES, PRODUCTS, SITE, discountedPrice, gheeType, productPath, rupees, whatsappLink, type GheeType, type Product } from "@/config/site";
-import { BuffaloIcon, CowIcon } from "@/components/ghee-icons";
+import { BuffaloIcon, CowIcon, OilIcon } from "@/components/ghee-icons";
 import { Footer, Header, WaIcon } from "@/components/site-layout";
 import { TrustStrip } from "@/components/trust-strip";
 import { productImage } from "@/lib/product-media";
@@ -38,7 +38,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Haryanvi Desi Ghee – Asli Haryane Ka Desi Swad" },
-      { name: "description", content: "Traditional Haryanvi cow desi ghee and buffalo desi ghee in 250 GM, 500 GM, 1 KG and 5 KG packs. Order easily on WhatsApp." },
+      { name: "description", content: "Traditional Haryanvi cow and buffalo desi ghee in 250 GM to 5 KG packs, plus cooking oil in 1, 2 and 5 liter packs. Order easily on WhatsApp." },
       { property: "og:title", content: "Haryanvi Desi Ghee – Asli Haryane Ka Desi Swad" },
       { property: "og:description", content: "Traditional taste from Haryana. Order your desi ghee directly on WhatsApp." },
       { property: "og:type", content: "website" },
@@ -128,7 +128,7 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
     <div className="reveal group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-warm transition duration-500 hover:-translate-y-2" style={{ transitionDelay: `${i * 80}ms` }}>
       <div className="relative aspect-square overflow-hidden bg-secondary">
         <a href={productPath(p)} aria-label={`View ${p.name} ${p.weight} details`}>
-          <img src={productImage(p.type)} alt={`${p.name} ${p.weight}`} loading="lazy" width={1024} height={1024} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
+          <img src={productImage(p.type, p.id)} alt={`${p.name} ${p.weight}`} loading="lazy" width={1024} height={1024} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
         </a>
         <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1 text-sm font-bold text-primary-foreground">{p.weight}</span>
         {p.tag && <span className="absolute right-4 top-4 rounded-full bg-gradient-gold px-3 py-1 text-xs font-semibold text-accent-foreground">{p.tag}</span>}
@@ -179,21 +179,24 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
   );
 }
 
-const TYPE_ICON: Record<GheeType, typeof CowIcon> = { cow: CowIcon, buffalo: BuffaloIcon };
+const TYPE_ICON: Record<GheeType, typeof CowIcon> = { cow: CowIcon, buffalo: BuffaloIcon, oil: OilIcon };
 
 function GheeTypeFilter({ value, onChange }: { value: GheeType; onChange: (t: GheeType) => void }) {
   return (
-    <div className="reveal mx-auto mb-10 flex max-w-sm justify-center gap-3 sm:max-w-md sm:gap-4" role="group" aria-label="Choose ghee type">
-      {GHEE_TYPES.map((t) => {
+    // Phones: two buttons per row (cow + buffalo ghee), and a last odd button (cooking oil)
+    // takes the full width below. Wider screens: all buttons in one row.
+    <div className="reveal mx-auto mb-10 grid max-w-md grid-cols-2 gap-3 sm:flex sm:max-w-2xl sm:justify-center sm:gap-4" role="group" aria-label="Choose product">
+      {GHEE_TYPES.map((t, i) => {
         const Icon = TYPE_ICON[t.id];
         const active = value === t.id;
+        const fullRow = GHEE_TYPES.length % 2 === 1 && i === GHEE_TYPES.length - 1;
         return (
           <button
             key={t.id}
             type="button"
             aria-pressed={active}
             onClick={() => onChange(t.id)}
-            className={`group relative flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-2.5 py-2 text-left transition duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/40 sm:gap-3 sm:px-3 ${
+            className={`group relative flex items-center justify-center gap-2 rounded-xl border-2 px-2.5 py-2 text-left transition duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/40 sm:flex-1 sm:basis-0 sm:gap-3 sm:px-3 ${fullRow ? "col-span-2" : ""} ${
               active
                 ? "border-gold bg-primary text-primary-foreground shadow-warm"
                 : "border-border bg-card text-primary hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-warm"
@@ -242,7 +245,7 @@ function Products() {
             setType(t);
           }}
         />
-        <SectionTitle eyebrow="Our Packs" title="Explore Our Pure Desi Ghee" />
+        <SectionTitle eyebrow="Our Packs" title={gheeType(type).kind === "oil" ? "Explore Our Cooking Oil" : "Explore Our Pure Desi Ghee"} />
         <p className="sr-only" aria-live="polite">Showing {label} products</p>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
@@ -423,14 +426,14 @@ function ReviewForm({ onAdded }: { onAdded: (reviews: Review[]) => void }) {
       </fieldset>
 
       <label className="mt-5 block text-sm font-semibold text-primary">
-        Which ghee did you try? <span className="font-normal text-muted-foreground">(optional)</span>
+        Which product did you try? <span className="font-normal text-muted-foreground">(optional)</span>
         <select value={product} onChange={(e) => setProduct(e.target.value as GheeType | "")} className={`${field} border-border`}>
-          <option value="">Not sure / both</option>
+          <option value="">Not sure / more than one</option>
           {GHEE_TYPES.map((t) => (
             <option key={t.id} value={t.id}>{t.label}</option>
           ))}
         </select>
-        <span className="mt-1 block text-xs font-normal text-muted-foreground">Your review will also show on that ghee's product page.</span>
+        <span className="mt-1 block text-xs font-normal text-muted-foreground">Your review will also show on that product's page.</span>
       </label>
 
       <label className="mt-5 block text-sm font-semibold text-primary">

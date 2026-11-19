@@ -48,3 +48,17 @@ export function BuffaloIcon({ className = "h-10 w-10" }: { className?: string })
     </svg>
   );
 }
+
+export function OilIcon({ className = "h-10 w-10" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      {/* cap and neck */}
+      <path d="M27 6h10v6H27z" />
+      <path d="M28 12v6c0 3-8 6-8 13v23c0 2 2 4 4 4h16c2 0 4-2 4-4V31c0-7-8-10-8-13v-6" />
+      {/* label */}
+      <path d="M20 34h24M20 48h24" />
+      {/* drop on the label */}
+      <path d="M32 37c0 0-3 4-3 6a3 3 0 0 0 6 0c0-2-3-6-3-6Z" />
+    </svg>
+  );
+}

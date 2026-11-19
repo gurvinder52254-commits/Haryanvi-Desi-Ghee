@@ -79,7 +79,7 @@ export function productSchema(type: GheeTypeInfo, reviews: Review[], summary: Ra
     category: PRODUCT_CATEGORY,
     productGroupID: `HDG-${type.id.toUpperCase()}`,
     variesBy: ["https://schema.org/size"],
-    hasVariant: products.map((p) => variant(type, p, image)),
+    hasVariant: products.map((p) => variant(type, p, absoluteUrl(productImage(type.id, p.id)))),
   };
 
   // Only real reviews customers wrote about this ghee type, all shown on the page.

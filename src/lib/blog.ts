@@ -3,8 +3,9 @@ import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
 import { SEED_POSTS } from "./blog-seed";
 import { MORE_SEED_POSTS } from "./blog-seed-2";
+import { OIL_SEED_POSTS } from "./blog-seed-oil";
 
-const ALL_SEEDS = [...SEED_POSTS, ...MORE_SEED_POSTS];
+const ALL_SEEDS = [...SEED_POSTS, ...MORE_SEED_POSTS, ...OIL_SEED_POSTS];
 async function requireAdmin() {
   const s = await import("./admin-session.server");
   s.requireAdmin();
@@ -170,7 +171,8 @@ export const postInputSchema = z.object({
     .string()
     .trim()
     .max(500)
-    .refine((v) => v === "" || /^https:\/\//.test(v), "Image link must start with https://")
+    // A full https:// link, or a picture already on this site (starts with a single "/").
+    .refine((v) => v === "" || /^https:\/\//.test(v) || /^\/(?!\/)/.test(v), "Image link must start with https://")
     .optional()
     .default(""),
   author: z.string().trim().max(60).optional().default(""),
