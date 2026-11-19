@@ -1,10 +1,9 @@
 import { DELIVERY, FIRST_ORDER_DISCOUNT, PRODUCTS, discountedPrice, productPath, rupees, type Product } from "@/config/site";
-import coverPrice from "@/assets/blog/mustard-oil-price.jpg";
-import coverGhani from "@/assets/blog/kachi-ghani-mustard-oil.jpg";
-import coverBenefits from "@/assets/blog/mustard-oil-benefits.jpg";
-import coverMeaning from "@/assets/blog/what-is-mustard-oil.jpg";
-import coverBest from "@/assets/blog/best-mustard-oil.jpg";
 import type { BlogPost } from "./blog";
+
+// Cover pictures live in public/images/blog so they are always served at the
+// same address (files imported only by server code are not copied to the site).
+const cover = (name: string) => `/images/blog/${name}.jpg`;
 
 // Mustard oil articles (Nov 2026). Keywords come from Google Trends data for
 // India (mustard oil price, 1 litre / 5 litre / 15 kg tin, kachi ghani, cold
@@ -97,7 +96,7 @@ We deliver ${packList} packs for free, usually within ${deliveryDays}. See [deli
       { q: "Is a tin cheaper than bottles?", a: "A tin is usually a little cheaper per litre, but it is opened many times. For home use, sealed 5 litre packs keep the oil fresher." },
       { q: "What is the GST rate on mustard oil?", a: "Edible oils such as mustard oil are taxed at 5% GST under HSN heading 1514. Check the official GST portal for the latest rate." },
     ],
-    coverImage: coverPrice,
+    coverImage: cover("mustard-oil-price"),
     createdAt: "2026-11-19T08:00:00.000Z",
   }),
 
@@ -160,7 +159,7 @@ For dal, saag, sabzi, pickles and pakode, a pressed mustard oil gives the real t
       { q: "What is the difference between black and yellow mustard oil?", a: "Black or brown mustard seed gives the sharp, pungent oil common in north India. Yellow mustard gives a milder, paler oil, more common in eastern India." },
       { q: "Is refined mustard oil bad?", a: "It is not unsafe, but refining uses solvents and high heat and removes most of the natural mustard aroma. Most Indian cooks prefer pressed mustard oil for its taste." },
     ],
-    coverImage: coverGhani,
+    coverImage: cover("kachi-ghani-mustard-oil"),
     createdAt: "2026-11-19T07:00:00.000Z",
   }),
 
@@ -224,7 +223,7 @@ Order ${shopLink} in ${packList} packs on WhatsApp, with free delivery. Compare 
       { q: "Can mustard oil be used for diya?", a: "Yes. Mustard oil burns with a steady flame and is widely used for diyas, including the Yam Deepak lit on Dhanteras evening in many homes." },
       { q: "How much mustard oil should I use daily?", a: "Use it in moderation, a few teaspoons of total oil and ghee per adult per day, and rotate between different fats instead of using only one oil." },
     ],
-    coverImage: coverBenefits,
+    coverImage: cover("mustard-oil-benefits"),
     createdAt: "2026-11-19T06:00:00.000Z",
   }),
 
@@ -293,7 +292,7 @@ We sell ${shopLink} in ${packList} packs, delivered free within ${deliveryDays}.
       { q: "How is mustard oil made?", a: "Mustard seeds are cleaned, then pressed in a ghani or expeller. The oil is settled and filtered. Roughly three kilos of seed give one kilo of oil." },
       { q: "Why does mustard oil smell so strong?", a: "Crushing mustard seed releases allyl isothiocyanate, a natural compound that gives mustard oil its sharp, eye-watering aroma." },
     ],
-    coverImage: coverMeaning,
+    coverImage: cover("what-is-mustard-oil"),
     createdAt: "2026-11-19T05:00:00.000Z",
   }),
 
@@ -370,7 +369,7 @@ ${priceList}`,
       { q: "Is mustard oil better than olive oil for Indian cooking?", a: "For high-heat Indian cooking such as tadka and frying, mustard oil works better and costs less. Extra virgin olive oil suits salads and light cooking." },
       { q: "Should I buy mustard oil in a bottle or a tin?", a: "Bottles and 5 litre jars stay sealed and fresher for homes. Tins are cheaper per litre but are opened many times, so they suit shops and big kitchens." },
     ],
-    coverImage: coverBest,
+    coverImage: cover("best-mustard-oil"),
     createdAt: "2026-11-19T04:00:00.000Z",
   }),
 ];

@@ -77,6 +77,12 @@ async function readAll(): Promise<BlogPost[]> {
   // Newer starter articles are added even after the admin has saved posts,
   // unless the admin deleted them or a post already uses the same address.
   const deleted = new Set(await readDeletedSeeds());
+  // A starter article saved with an old build's picture address (/assets/name-HASH.jpg,
+  // which is gone after a new deploy) gets the starter's current picture again.
+  saved = saved.map((p) => {
+    const seed = ALL_SEEDS.find((s) => s.id === p.id);
+    return seed && seed.coverImage && p.coverImage?.startsWith("/assets/") ? { ...p, coverImage: seed.coverImage } : p;
+  });
   const ids = new Set(saved.map((p) => p.id));
   const slugs = new Set(saved.map((p) => p.slug));
   const extra = ALL_SEEDS.filter((p) => !ids.has(p.id) && !slugs.has(p.slug) && !deleted.has(p.id)).map((p) => ({ ...p }));
