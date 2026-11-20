@@ -4,8 +4,9 @@ import { z } from "zod";
 import { SEED_POSTS } from "./blog-seed";
 import { MORE_SEED_POSTS } from "./blog-seed-2";
 import { OIL_SEED_POSTS } from "./blog-seed-oil";
+import { GHEE_SEED_POSTS_3 } from "./blog-seed-ghee-3";
 
-const ALL_SEEDS = [...SEED_POSTS, ...MORE_SEED_POSTS, ...OIL_SEED_POSTS];
+const ALL_SEEDS = [...SEED_POSTS, ...MORE_SEED_POSTS, ...OIL_SEED_POSTS, ...GHEE_SEED_POSTS_3];
 async function requireAdmin() {
   const s = await import("./admin-session.server");
   s.requireAdmin();
