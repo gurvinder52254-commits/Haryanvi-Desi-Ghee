@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as FreeDeliveryRouteImport } from './routes/free-delivery'
 import { Route as LabTestedRouteImport } from './routes/lab-tested'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
@@ -36,6 +37,11 @@ const AboutRoute = AboutRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FreeDeliveryRoute = FreeDeliveryRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/faq': typeof FaqRoute
   '/free-delivery': typeof FreeDeliveryRoute
   '/lab-tested': typeof LabTestedRoute
   '/llms.txt': typeof LlmsDottxtRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/faq': typeof FaqRoute
   '/free-delivery': typeof FreeDeliveryRoute
   '/lab-tested': typeof LabTestedRoute
   '/llms.txt': typeof LlmsDottxtRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/faq': typeof FaqRoute
   '/free-delivery': typeof FreeDeliveryRoute
   '/lab-tested': typeof LabTestedRoute
   '/llms.txt': typeof LlmsDottxtRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/faq'
     | '/free-delivery'
     | '/lab-tested'
     | '/llms.txt'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/faq'
     | '/free-delivery'
     | '/lab-tested'
     | '/llms.txt'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/faq'
     | '/free-delivery'
     | '/lab-tested'
     | '/llms.txt'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
+  FaqRoute: typeof FaqRoute
   FreeDeliveryRoute: typeof FreeDeliveryRoute
   LabTestedRoute: typeof LabTestedRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/free-delivery': {
@@ -299,6 +319,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
+  FaqRoute: FaqRoute,
   FreeDeliveryRoute: FreeDeliveryRoute,
   LabTestedRoute: LabTestedRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,

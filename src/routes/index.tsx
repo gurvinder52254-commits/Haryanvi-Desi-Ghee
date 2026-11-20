@@ -5,7 +5,11 @@ import village from "@/assets/village.jpg";
 import { FIRST_ORDER_DISCOUNT, GHEE_TYPES, PRODUCTS, SITE, discountedPrice, gheeType, productPath, rupees, whatsappLink, type GheeType, type Product } from "@/config/site";
 import { BuffaloIcon, CowIcon, OilIcon } from "@/components/ghee-icons";
 import { Footer, Header, WaIcon } from "@/components/site-layout";
+import { AddToCartButton } from "@/components/cart";
 import { TrustStrip } from "@/components/trust-strip";
+import { FaqList } from "@/components/faq-list";
+import { faqPageSchema, jsonLdScript } from "@/lib/seo";
+import { HOME_FAQS } from "@/lib/site-faqs";
 import { productImage } from "@/lib/product-media";
 import { addReview, getReviews, reviewInputSchema, type Review } from "@/lib/reviews";
 
@@ -47,7 +51,10 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: `${SITE.url}/` }],
     // Tells Google the site's name, so search results show "Haryanvi Desi Ghee"
     // instead of the hosting company's name. "<" is escaped for safety.
-    scripts: [{ type: "application/ld+json", children: JSON.stringify(SITE_SCHEMA).replace(/</g, "\x5cu003c") }],
+    scripts: [
+      { type: "application/ld+json", children: JSON.stringify(SITE_SCHEMA).replace(/</g, "\x5cu003c") },
+      jsonLdScript({ "@context": "https://schema.org", ...faqPageSchema("/", HOME_FAQS) }),
+    ],
   }),
   loader: () => getReviews(),
   component: Index,
@@ -76,6 +83,7 @@ function Index() {
       <About />
       <Why />
       <Reviews />
+      <HomeFaq />
       <Contact />
       <Footer />
     </div>
@@ -168,9 +176,7 @@ function ProductCard({ p, i }: { p: Product; i: number }) {
             </div>
           )}
         </div>
-        <a href={whatsappLink(p, qty)} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-5 py-3 font-semibold text-whatsapp-foreground transition hover:brightness-110">
-          <WaIcon /> Buy Now
-        </a>
+        <AddToCartButton product={p} qty={qty} className="mt-6" />
         <a href={productPath(p)} className="mt-3 text-center text-sm font-semibold text-earth underline-offset-4 hover:underline">
           View details
         </a>
@@ -513,6 +519,22 @@ function Reviews() {
           </p>
         )}
         <ReviewForm onAdded={setReviews} />
+      </div>
+    </section>
+  );
+}
+
+function HomeFaq() {
+  return (
+    <section id="faq" className="scroll-mt-20 px-5 py-24">
+      <div className="mx-auto max-w-3xl">
+        <SectionTitle eyebrow="FAQ" title="Frequently Asked Questions" />
+        <FaqList faqs={HOME_FAQS} />
+        <div className="mt-10 text-center">
+          <a href="/faq" className="inline-flex rounded-full border-2 border-primary px-8 py-3 font-semibold text-primary transition hover:bg-primary hover:text-primary-foreground">
+            View all FAQs
+          </a>
+        </div>
       </div>
     </section>
   );

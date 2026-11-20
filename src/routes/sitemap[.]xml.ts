@@ -21,6 +21,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           ...GHEE_TYPES.map((t) => ({ loc: `/products/${t.slug}`, priority: "0.9", changefreq: "weekly" })),
           { loc: "/lab-tested", priority: "0.7", changefreq: "monthly" },
           { loc: "/free-delivery", priority: "0.7", changefreq: "monthly" },
+          { loc: "/faq", priority: "0.7", changefreq: "monthly" },
           { loc: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
           ...posts.map((p) => ({ loc: `/blog/${p.slug}`, priority: "0.8", changefreq: "monthly", lastmod: p.updatedAt })),
         ];

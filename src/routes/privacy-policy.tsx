@@ -39,7 +39,7 @@ const SECTIONS: { id: string; title: string; body: ReactNode }[] = [
       <>
         <p><strong>Information you give us:</strong></p>
         <ul>
-          <li><strong>Order details:</strong> when you order through WhatsApp, we receive your name, WhatsApp phone number and the products, quantity and price in your message. To deliver your order, we ask for your delivery address and may ask for an alternate phone number.</li>
+          <li><strong>Order details:</strong> when you order through WhatsApp, we receive your name, WhatsApp phone number and the products, quantity and price in your message. To deliver your order, we ask for your delivery address and may ask for an alternate phone number. When you order from the cart on our website, you enter your name and (optionally) your address; these go into the WhatsApp message you send us and are not stored on our server.</li>
           <li><strong>Reviews:</strong> when you post a review on our website, we collect your name, city (optional), star rating and review text. Reviews are shown publicly on our website.</li>
           <li><strong>Messages:</strong> anything you send us by WhatsApp, phone or email, such as questions or feedback.</li>
         </ul>
@@ -96,7 +96,7 @@ const SECTIONS: { id: string; title: string; body: ReactNode }[] = [
     body: (
       <>
         <p>
-          Our website does not use advertising or tracking cookies. A single essential cookie is used only when our staff log in to manage the website. Our pages load fonts from Google Fonts, which means your browser connects to Google's servers and shares your IP address with Google.
+          Our website does not use advertising or tracking cookies. A single essential cookie is used only when our staff log in to manage the website. Your cart, and the details you type in the order form, are saved in your own browser's local storage so they are still there when you come back; you can remove them by clearing your cart or your browser data. Our pages load fonts from Google Fonts, which means your browser connects to Google's servers and shares your IP address with Google.
         </p>
         <p>Links to WhatsApp and other websites are covered by those services' own privacy policies.</p>
       </>

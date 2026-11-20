@@ -3,6 +3,7 @@ import { listPublishedPosts } from "@/lib/blog";
 import { DELIVERY, FIRST_ORDER_DISCOUNT, GHEE_TYPES, SITE, discountedPrice, inStock, rupees } from "@/config/site";
 import { productsOf } from "@/lib/product-schema";
 import { productFaqs } from "@/lib/product-faqs";
+import { ALL_SITE_FAQS } from "@/lib/site-faqs";
 import { siteOrigin } from "@/lib/site-origin";
 
 // /llms.txt – a plain-text summary of the business for AI assistants and AI search
@@ -47,6 +48,7 @@ export const Route = createFileRoute("/llms.txt")({
           `- [Home](${origin}/): products, reviews and how our ghee is made`,
           `- [Lab Tested 100% Pure](${origin}/lab-tested): purity promises, FSSAI parameters, lab report and home purity tests`,
           `- [Free Delivery](${origin}/free-delivery): delivery areas, times and packing`,
+          `- [FAQ](${origin}/faq): desi ghee and mustard oil questions, prices, ordering and delivery`,
           `- [About Us](${origin}/about): our story and the traditional method`,
           `- [Blog](${origin}/blog): guides on desi ghee`,
           "",
@@ -64,6 +66,11 @@ export const Route = createFileRoute("/llms.txt")({
             seen.add(f.q);
             lines.push(`**${f.q}**`, f.a, "");
           }
+        }
+        for (const f of ALL_SITE_FAQS) {
+          if (seen.has(f.q)) continue;
+          seen.add(f.q);
+          lines.push(`**${f.q}**`, f.a, "");
         }
         return new Response(lines.join("\n"), {
           headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" },

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { GHEE_TYPES, PRODUCTS, whatsappLink } from "@/config/site";
+import { CartButton, CartDrawer } from "@/components/cart";
 
 // Links work from every page: "/#products" scrolls on the home page and
 // navigates back to it from other pages.
@@ -10,6 +11,7 @@ export const NAV = [
   { href: "/lab-tested", label: "Lab Tested" },
   { href: "/free-delivery", label: "Free Delivery" },
   { href: "/blog", label: "Blog" },
+  { href: "/faq", label: "FAQ" },
   { href: "/#contact", label: "Contact Us" },
 ];
 
@@ -66,18 +68,23 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
               {n.label}
             </a>
           ))}
+          <CartButton light={!solid} />
           <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-5 py-2.5 text-sm font-semibold text-whatsapp-foreground transition hover:scale-105">
             <WaIcon className="h-4 w-4" /> WhatsApp Order
           </a>
         </nav>
-        <button aria-label="Menu" onClick={() => setOpen(!open)} className={`xl:hidden ${solid ? "text-foreground" : "text-primary-foreground"}`}>
-          <div className="space-y-1.5">
-            <span className={`block h-0.5 w-6 bg-current transition ${open ? "translate-y-2 rotate-45" : ""}`} />
-            <span className={`block h-0.5 w-6 bg-current transition ${open ? "opacity-0" : ""}`} />
-            <span className={`block h-0.5 w-6 bg-current transition ${open ? "-translate-y-2 -rotate-45" : ""}`} />
-          </div>
-        </button>
+        <div className="flex items-center gap-3 xl:hidden">
+          <CartButton light={!solid} />
+          <button aria-label="Menu" onClick={() => setOpen(!open)} className={`xl:hidden ${solid ? "text-foreground" : "text-primary-foreground"}`}>
+            <div className="space-y-1.5">
+              <span className={`block h-0.5 w-6 bg-current transition ${open ? "translate-y-2 rotate-45" : ""}`} />
+              <span className={`block h-0.5 w-6 bg-current transition ${open ? "opacity-0" : ""}`} />
+              <span className={`block h-0.5 w-6 bg-current transition ${open ? "-translate-y-2 -rotate-45" : ""}`} />
+            </div>
+          </button>
+        </div>
       </div>
+      <CartDrawer />
       <div className={`overflow-hidden transition-all duration-300 xl:hidden ${open ? "max-h-[32rem]" : "max-h-0"}`}>
         <nav className="flex flex-col gap-1 px-5 pb-5">
           {NAV.map((n) => (

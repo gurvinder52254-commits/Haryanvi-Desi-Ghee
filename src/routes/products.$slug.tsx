@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { Footer, Header, WaIcon } from "@/components/site-layout";
+import { AddToCartButton } from "@/components/cart";
 import { ShieldCheckIcon, TruckIcon } from "@/components/trust-strip";
 import { BuffaloIcon, CowIcon, OilIcon } from "@/components/ghee-icons";
 import {
@@ -200,6 +201,7 @@ function ProductPage() {
                   ) : (
                     <span className="flex-1 rounded-full bg-muted px-6 py-3.5 text-center font-semibold text-muted-foreground">Currently unavailable</span>
                   )}
+                  {available && <AddToCartButton product={selected} qty={qty} className="basis-full py-3" />}
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">SKU: {skuFor(selected)}</p>
               </div>
